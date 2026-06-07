@@ -282,7 +282,6 @@ function showTab(tab) {
 function backToHome() { renderHome(); showScreen('home'); }
 function showLoader(v) { document.getElementById('loader').classList.toggle('hidden', !v); }
 
-// ── STREAK ──
 function updateStreak() {
   const today = new Date().toDateString();
   const yesterday = new Date(Date.now() - 86400000).toDateString();
@@ -307,21 +306,14 @@ function renderStreak() {
   }
 }
 
-// ── HARD WORDS ──
-function getCardKey(card) {
-  return card.face1 + '|' + card.face2;
-}
-
-function isHardWord(card) {
-  return (state.hardWords[getCardKey(card)] || 0) >= 2;
-}
+function getCardKey(card) { return card.face1 + '|' + card.face2; }
+function isHardWord(card) { return (state.hardWords[getCardKey(card)] || 0) >= 2; }
 
 function recordResult(card, reussi) {
   const key = getCardKey(card);
   if (!reussi) {
     state.hardWords[key] = (state.hardWords[key] || 0) + 1;
   } else {
-    // Si réussi, on décrémente — 2 réussites consécutives = plus difficile
     if (state.hardWords[key] > 0) {
       state.hardWords[key] = Math.max(0, state.hardWords[key] - 1);
     }
@@ -330,23 +322,16 @@ function recordResult(card, reussi) {
 
 function getHardWords() {
   const hard = [];
-  // Chercher dans toutes les feuilles
   SEQUENCE.forEach(f => {
     (state.feuilles[f] || []).forEach(card => {
       if (isHardWord(card)) hard.push({...card, fromFeuille: f});
     });
   });
-  // Chercher aussi dans la database
-  (state.database || []).forEach(card => {
-    if (isHardWord(card)) hard.push({...card, fromFeuille: 'database'});
-  });
   return hard;
 }
 
-// ── HOME ──
 function renderHome() {
   renderStreak();
-
   const dbCount = state.database.length;
   document.getElementById('db-card-container').innerHTML = `
     <div class="feuille-card database-card" onclick="openDatabase()">
@@ -354,7 +339,6 @@ function renderHome() {
       <div class="feuille-badge db">${dbCount}</div>
     </div>`;
 
-  // Hard words card
   const hardWords = getHardWords();
   const hardCount = hardWords.length;
   const hardContainer = document.getElementById('hard-card-container');
@@ -388,7 +372,6 @@ function renderHome() {
   });
 }
 
-// ── DATABASE ──
 function openDatabase() {
   dbSelected = new Set();
   dbFiltered = [...state.database];
@@ -433,6 +416,8 @@ function sendToDemain() {
   if (dbSelected.size === 0) return;
   const toSend = [...dbSelected].map(i => state.database[i]);
   state.feuilles['Demain'] = [...(state.feuilles['Demain'] || []), ...toSend];
+  const selectedIndices = [...dbSelected].sort((a,b) => b - a);
+  selectedIndices.forEach(i => state.database.splice(i, 1));
   saveLocal();
   pushToSheets();
   showToast(toSend.length + ' mot(s) envoyé(s) en Demain ✓');
@@ -440,7 +425,6 @@ function sendToDemain() {
   backToHome();
 }
 
-// ── SESSION ──
 function shuffle(arr) {
   const a = [...arr];
   for (let i = a.length - 1; i > 0; i--) {
@@ -468,8 +452,7 @@ function startHardSession() {
   if (hardWords.length === 0) return;
   session = {
     feuille:'Difficiles', cards:shuffle(hardWords), index:0, total:hardWords.length,
-    ok:0, rate:0, results:[], sensNormal:true,
-    isHardSession:true
+    ok:0, rate:0, results:[], sensNormal:true, isHardSession:true
   };
   showScreen('flash');
   showCard();
@@ -478,7 +461,6 @@ function startHardSession() {
 function showCard() {
   const card = session.cards[session.index];
   const isHard = isHardWord(card);
-
   document.getElementById('flash-feuille-name').textContent = session.feuille.replace(/_/g,' ');
   document.getElementById('flash-counter').textContent = (session.index + 1) + '/' + session.total;
   document.getElementById('card-label-q').textContent = session.sensNormal ? 'Mot' : 'Traduction';
@@ -491,8 +473,6 @@ function showCard() {
   document.getElementById('score-ok-mini').textContent = session.ok;
   document.getElementById('score-ko-mini').textContent = session.rate;
   document.getElementById('progress-fill').style.width = (session.index / session.total * 100) + '%';
-
-  // Hard word indicator
   const hardLabel = document.getElementById('card-hard-label');
   const flashCard = document.getElementById('flash-card');
   if (isHard) {
@@ -520,7 +500,6 @@ function answer(reussi) {
 }
 
 function endSession() {
-  // Pour session normale : déplacer les cartes
   if (!session.isHardSession) {
     session.results.forEach(({card, reussi}) => {
       const dest = reussi ? nextFeuille(session.feuille) : prevFeuille(session.feuille);
@@ -528,10 +507,7 @@ function endSession() {
       state.feuilles[dest].push(card);
     });
   }
-
-  // Streak
   updateStreak();
-
   const total = session.ok + session.rate;
   const pct = total > 0 ? Math.round((session.ok / total) * 100) : 0;
   const entry = {date:new Date().toLocaleString('fr-FR'), feuille:session.feuille, ok:session.ok, rate:session.rate, pct};
@@ -539,7 +515,6 @@ function endSession() {
   saveLocal();
   if (!session.isHardSession) pushToSheets();
   pushHistory(entry);
-
   document.getElementById('result-feuille').textContent = session.feuille.replace(/_/g,' ');
   document.getElementById('res-ok').textContent = session.ok;
   document.getElementById('res-ko').textContent = session.rate;
@@ -552,19 +527,15 @@ function endSession() {
 function nextFeuille(c) { const i = SEQUENCE.indexOf(c); return SEQUENCE[Math.min(i+1,SEQUENCE.length-1)]; }
 function prevFeuille(c) { const i = SEQUENCE.indexOf(c); return SEQUENCE[Math.max(i-1,0)]; }
 
-// ── DASHBOARD ──
 function renderDashboard() {
   const totalCards = SEQUENCE.reduce((s,f) => s + (state.feuilles[f]||[]).length, 0);
   const totalSessions = state.history.length;
   const avgPct = totalSessions > 0 ? Math.round(state.history.reduce((s,h) => s+h.pct,0)/totalSessions) : 0;
-  const hardCount = getHardWords().length;
-
   document.getElementById('dash-overview').innerHTML = `
     <div class="stats-card"><div class="val">${totalCards}</div><div class="lbl">Cartes actives</div></div>
     <div class="stats-card"><div class="val">${totalSessions}</div><div class="lbl">Sessions</div></div>
     <div class="stats-card"><div class="val">${avgPct}%</div><div class="lbl">Score moyen</div></div>
     <div class="stats-card"><div class="val">${state.streak || 0}🔥</div><div class="lbl">Streak</div></div>`;
-
   const barsEl = document.getElementById('dash-bars');
   barsEl.innerHTML = '';
   SEQUENCE.forEach(f => {
@@ -576,7 +547,6 @@ function renderDashboard() {
       <div class="bar-track"><div class="bar-fill ${cls}" style="width:${avg}%"><span>${sessions.length > 0 ? avg+'%' : '—'}</span></div></div>
     </div>`;
   });
-
   const histEl = document.getElementById('dash-history');
   if (!state.history.length) { histEl.innerHTML = '<div style="color:var(--text-muted);font-size:14px;text-align:center;padding:20px">Aucune session</div>'; return; }
   histEl.innerHTML = state.history.slice(0,20).map(h => {
@@ -588,14 +558,12 @@ function renderDashboard() {
   }).join('');
 }
 
-// ── TOAST ──
 function showToast(msg) {
   const t = document.getElementById('toast');
   t.textContent = msg; t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 2500);
 }
 
-// ── INIT ──
 loadLocal();
 renderHome();
 syncNow();
