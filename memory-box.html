@@ -20,6 +20,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .home-hero{padding:32px 24px 20px;text-align:center}
 .home-hero h1{font-size:30px;font-weight:700;letter-spacing:-1px;color:var(--blue);margin-bottom:4px}
 .home-hero p{font-size:14px;color:var(--text-muted)}
+.streak-badge{margin-top:12px;font-size:14px;color:var(--gold);font-weight:600}
 .sync-bar{margin:0 20px 16px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px 16px;display:flex;align-items:center;justify-content:space-between}
 .sync-status{font-size:13px;color:var(--text-muted)}.sync-status span{color:var(--text);font-weight:500}
 .btn-sync{background:var(--blue);color:white;border:none;border-radius:8px;padding:7px 14px;font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif}
@@ -28,9 +29,12 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .feuille-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;margin:0 20px 10px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;transition:background .15s,transform .1s;-webkit-user-select:none}
 .feuille-card:active{transform:scale(.98);background:var(--surface2)}.feuille-card.empty{opacity:.4;cursor:default}.feuille-card.empty:active{transform:none}
 .feuille-card.database-card{border-color:var(--blue)}
+.feuille-card.hard-card{border-color:var(--red)}
 .feuille-info h3{font-size:16px;font-weight:600;margin-bottom:3px}.feuille-info span{font-size:13px;color:var(--text-muted)}
 .feuille-badge{background:var(--blue);color:white;font-size:13px;font-weight:700;font-family:'DM Mono',monospace;padding:4px 10px;border-radius:20px;min-width:36px;text-align:center}
-.feuille-badge.zero{background:var(--surface2);color:var(--text-dim)}.feuille-badge.db{background:transparent;color:var(--blue);border:1px solid var(--blue)}
+.feuille-badge.zero{background:var(--surface2);color:var(--text-dim)}
+.feuille-badge.db{background:transparent;color:var(--blue);border:1px solid var(--blue)}
+.feuille-badge.hard{background:transparent;color:var(--red);border:1px solid var(--red)}
 .db-header{padding:16px 20px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--border);flex-shrink:0}
 .btn-back{width:36px;height:36px;background:var(--surface);border:1px solid var(--border);border-radius:10px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;flex-shrink:0}
 .btn-back:active{background:var(--surface2)}.db-meta{flex:1}.db-meta h2{font-size:17px;font-weight:600}.db-meta span{font-size:12px;color:var(--text-muted);font-family:'DM Mono',monospace}
@@ -57,10 +61,12 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .progress-bar{height:3px;background:var(--border);flex-shrink:0}.progress-fill{height:100%;background:var(--blue);transition:width .4s ease}
 .card-area{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px 20px;gap:16px}
 .card{width:100%;max-width:400px;background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:40px 24px;text-align:center;min-height:200px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px}
+.card.hard-card-flash{border-color:var(--red)}
 .card-label{font-size:11px;text-transform:uppercase;letter-spacing:1.5px;color:var(--text-dim);font-family:'DM Mono',monospace}
 .card-question{font-size:28px;font-weight:700;letter-spacing:-.5px;line-height:1.2}
 .card-divider{width:40px;height:2px;background:var(--border);border-radius:2px}
 .card-answer{font-size:22px;font-weight:500;color:var(--blue);opacity:0;transition:opacity .3s ease}.card-answer.visible{opacity:1}
+.card-hard-label{font-size:11px;color:var(--red);font-weight:600;font-family:'DM Mono',monospace}
 .btn-area{padding:16px 20px 40px;display:flex;flex-direction:column;gap:12px;width:100%;max-width:440px;margin:0 auto;flex-shrink:0}
 .btn{width:100%;padding:18px;border:none;border-radius:var(--radius);font-family:'DM Sans',sans-serif;font-size:16px;font-weight:600;cursor:pointer;transition:transform .1s,opacity .15s}
 .btn:active{transform:scale(.97)}.btn:disabled{opacity:.3;cursor:default}
@@ -100,13 +106,19 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 <div class="loader hidden" id="loader"><div class="spinner"></div></div>
 <div id="screen-home" class="screen active">
   <div class="scroll-content">
-    <div class="home-hero"><h1>Memory Box</h1><p>Système de révision Leitner</p></div>
+    <div class="home-hero">
+      <h1>Memory Box</h1>
+      <p>Système de révision Leitner</p>
+      <div class="streak-badge" id="streak-display"></div>
+    </div>
     <div class="sync-bar">
       <div class="sync-status">Sync : <span id="sync-status-text">Chargement...</span></div>
       <button class="btn-sync" onclick="syncNow()">↻ Sync</button>
     </div>
     <div class="section-title" style="margin-top:8px">Base de données</div>
     <div id="db-card-container"></div>
+    <div class="section-title" style="margin-top:16px">Mots difficiles</div>
+    <div id="hard-card-container"></div>
     <div class="section-title" style="margin-top:16px">Feuilles de révision</div>
     <div id="feuilles-container"></div>
   </div>
@@ -147,7 +159,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
   </div>
   <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
   <div class="card-area">
-    <div class="card">
+    <div class="card" id="flash-card">
+      <div class="card-hard-label hidden" id="card-hard-label">⚡ Mot difficile</div>
       <div class="card-label" id="card-label-q">Mot</div>
       <div class="card-question" id="card-question">—</div>
       <div class="card-divider"></div>
@@ -197,9 +210,9 @@ const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwyrFlQYwSjt0HpGMyKJ
 const SEQUENCE = ['Demain','Impair','Lundi','Premier_du_mois','3_mois','6_mois','Un_an'];
 const SENS_NORMAL = {Demain:true,Impair:false,Lundi:true,Premier_du_mois:false,'3_mois':true,'6_mois':false,Un_an:true};
 
-let state = {database:[],feuilles:{},history:[]};
+let state = {database:[],feuilles:{},history:[],hardWords:{},streak:0,lastSessionDate:null};
 SEQUENCE.forEach(f => state.feuilles[f] = []);
-let session = {feuille:null,cards:[],index:0,total:0,ok:0,rate:0,results:[],sensNormal:true};
+let session = {feuille:null,cards:[],index:0,total:0,ok:0,rate:0,results:[],sensNormal:true,isHardSession:false};
 let dbSelected = new Set();
 let dbFiltered = [];
 
@@ -211,6 +224,9 @@ function loadLocal() {
       if (p.database) state.database = p.database;
       if (p.feuilles) state.feuilles = p.feuilles;
       if (p.history) state.history = p.history;
+      if (p.hardWords) state.hardWords = p.hardWords;
+      if (p.streak) state.streak = p.streak;
+      if (p.lastSessionDate) state.lastSessionDate = p.lastSessionDate;
       SEQUENCE.forEach(f => { if (!state.feuilles[f]) state.feuilles[f] = []; });
     }
   } catch(e) {}
@@ -266,13 +282,96 @@ function showTab(tab) {
 function backToHome() { renderHome(); showScreen('home'); }
 function showLoader(v) { document.getElementById('loader').classList.toggle('hidden', !v); }
 
+// ── STREAK ──
+function updateStreak() {
+  const today = new Date().toDateString();
+  const yesterday = new Date(Date.now() - 86400000).toDateString();
+  if (state.lastSessionDate === today) {
+    // déjà joué aujourd'hui
+  } else if (state.lastSessionDate === yesterday) {
+    state.streak = (state.streak || 0) + 1;
+  } else {
+    state.streak = 1;
+  }
+  state.lastSessionDate = today;
+}
+
+function renderStreak() {
+  const el = document.getElementById('streak-display');
+  if (state.streak >= 2) {
+    el.textContent = '🔥 ' + state.streak + ' jours consécutifs';
+  } else if (state.streak === 1) {
+    el.textContent = '🔥 1er jour — continue !';
+  } else {
+    el.textContent = '';
+  }
+}
+
+// ── HARD WORDS ──
+function getCardKey(card) {
+  return card.face1 + '|' + card.face2;
+}
+
+function isHardWord(card) {
+  return (state.hardWords[getCardKey(card)] || 0) >= 2;
+}
+
+function recordResult(card, reussi) {
+  const key = getCardKey(card);
+  if (!reussi) {
+    state.hardWords[key] = (state.hardWords[key] || 0) + 1;
+  } else {
+    // Si réussi, on décrémente — 2 réussites consécutives = plus difficile
+    if (state.hardWords[key] > 0) {
+      state.hardWords[key] = Math.max(0, state.hardWords[key] - 1);
+    }
+  }
+}
+
+function getHardWords() {
+  const hard = [];
+  // Chercher dans toutes les feuilles
+  SEQUENCE.forEach(f => {
+    (state.feuilles[f] || []).forEach(card => {
+      if (isHardWord(card)) hard.push({...card, fromFeuille: f});
+    });
+  });
+  // Chercher aussi dans la database
+  (state.database || []).forEach(card => {
+    if (isHardWord(card)) hard.push({...card, fromFeuille: 'database'});
+  });
+  return hard;
+}
+
+// ── HOME ──
 function renderHome() {
+  renderStreak();
+
   const dbCount = state.database.length;
   document.getElementById('db-card-container').innerHTML = `
     <div class="feuille-card database-card" onclick="openDatabase()">
       <div class="feuille-info"><h3>Data Base</h3><span>Sélectionner les mots à apprendre</span></div>
       <div class="feuille-badge db">${dbCount}</div>
     </div>`;
+
+  // Hard words card
+  const hardWords = getHardWords();
+  const hardCount = hardWords.length;
+  const hardContainer = document.getElementById('hard-card-container');
+  if (hardCount > 0) {
+    hardContainer.innerHTML = `
+      <div class="feuille-card hard-card" onclick="startHardSession()">
+        <div class="feuille-info"><h3>💪 Mots difficiles</h3><span>Ratés 2 fois ou plus</span></div>
+        <div class="feuille-badge hard">${hardCount}</div>
+      </div>`;
+  } else {
+    hardContainer.innerHTML = `
+      <div class="feuille-card empty">
+        <div class="feuille-info"><h3>💪 Mots difficiles</h3><span>Aucun mot difficile pour l'instant</span></div>
+        <div class="feuille-badge zero">0</div>
+      </div>`;
+  }
+
   const container = document.getElementById('feuilles-container');
   container.innerHTML = '';
   SEQUENCE.forEach(f => {
@@ -289,6 +388,7 @@ function renderHome() {
   });
 }
 
+// ── DATABASE ──
 function openDatabase() {
   dbSelected = new Set();
   dbFiltered = [...state.database];
@@ -305,9 +405,10 @@ function renderDBList() {
   document.getElementById('db-list').innerHTML = dbFiltered.map(card => {
     const realIdx = state.database.indexOf(card);
     const sel = dbSelected.has(realIdx);
+    const hard = isHardWord(card);
     return `<div class="db-item ${sel ? 'selected' : ''}" onclick="toggleSelect(${realIdx})">
       <div class="db-checkbox"></div>
-      <div class="db-word"><h4>${card.face1}</h4><span>${card.face2}</span></div>
+      <div class="db-word"><h4>${card.face1} ${hard ? '⚡' : ''}</h4><span>${card.face2}</span></div>
     </div>`;
   }).join('');
 }
@@ -339,6 +440,7 @@ function sendToDemain() {
   backToHome();
 }
 
+// ── SESSION ──
 function shuffle(arr) {
   const a = [...arr];
   for (let i = a.length - 1; i > 0; i--) {
@@ -351,14 +453,32 @@ function shuffle(arr) {
 function startSession(feuille) {
   const cards = state.feuilles[feuille];
   if (!cards || cards.length === 0) return;
-  session = {feuille,cards:shuffle([...cards]),index:0,total:cards.length,ok:0,rate:0,results:[],sensNormal:SENS_NORMAL[feuille] !== false};
+  session = {
+    feuille, cards:shuffle([...cards]), index:0, total:cards.length,
+    ok:0, rate:0, results:[], sensNormal:SENS_NORMAL[feuille] !== false,
+    isHardSession:false
+  };
   state.feuilles[feuille] = [];
+  showScreen('flash');
+  showCard();
+}
+
+function startHardSession() {
+  const hardWords = getHardWords();
+  if (hardWords.length === 0) return;
+  session = {
+    feuille:'Difficiles', cards:shuffle(hardWords), index:0, total:hardWords.length,
+    ok:0, rate:0, results:[], sensNormal:true,
+    isHardSession:true
+  };
   showScreen('flash');
   showCard();
 }
 
 function showCard() {
   const card = session.cards[session.index];
+  const isHard = isHardWord(card);
+
   document.getElementById('flash-feuille-name').textContent = session.feuille.replace(/_/g,' ');
   document.getElementById('flash-counter').textContent = (session.index + 1) + '/' + session.total;
   document.getElementById('card-label-q').textContent = session.sensNormal ? 'Mot' : 'Traduction';
@@ -371,6 +491,17 @@ function showCard() {
   document.getElementById('score-ok-mini').textContent = session.ok;
   document.getElementById('score-ko-mini').textContent = session.rate;
   document.getElementById('progress-fill').style.width = (session.index / session.total * 100) + '%';
+
+  // Hard word indicator
+  const hardLabel = document.getElementById('card-hard-label');
+  const flashCard = document.getElementById('flash-card');
+  if (isHard) {
+    hardLabel.classList.remove('hidden');
+    flashCard.classList.add('hard-card-flash');
+  } else {
+    hardLabel.classList.add('hidden');
+    flashCard.classList.remove('hard-card-flash');
+  }
 }
 
 function revealCard() {
@@ -381,25 +512,34 @@ function revealCard() {
 
 function answer(reussi) {
   const card = session.cards[session.index];
-  session.results.push({card,reussi});
+  session.results.push({card, reussi});
+  recordResult(card, reussi);
   if (reussi) session.ok++; else session.rate++;
   session.index++;
   if (session.index >= session.total) endSession(); else showCard();
 }
 
 function endSession() {
-  session.results.forEach(({card,reussi}) => {
-    const dest = reussi ? nextFeuille(session.feuille) : prevFeuille(session.feuille);
-    if (!state.feuilles[dest]) state.feuilles[dest] = [];
-    state.feuilles[dest].push(card);
-  });
+  // Pour session normale : déplacer les cartes
+  if (!session.isHardSession) {
+    session.results.forEach(({card, reussi}) => {
+      const dest = reussi ? nextFeuille(session.feuille) : prevFeuille(session.feuille);
+      if (!state.feuilles[dest]) state.feuilles[dest] = [];
+      state.feuilles[dest].push(card);
+    });
+  }
+
+  // Streak
+  updateStreak();
+
   const total = session.ok + session.rate;
   const pct = total > 0 ? Math.round((session.ok / total) * 100) : 0;
-  const entry = {date:new Date().toLocaleString('fr-FR'),feuille:session.feuille,ok:session.ok,rate:session.rate,pct};
+  const entry = {date:new Date().toLocaleString('fr-FR'), feuille:session.feuille, ok:session.ok, rate:session.rate, pct};
   state.history.unshift(entry);
   saveLocal();
-  pushToSheets();
+  if (!session.isHardSession) pushToSheets();
   pushHistory(entry);
+
   document.getElementById('result-feuille').textContent = session.feuille.replace(/_/g,' ');
   document.getElementById('res-ok').textContent = session.ok;
   document.getElementById('res-ko').textContent = session.rate;
@@ -412,15 +552,19 @@ function endSession() {
 function nextFeuille(c) { const i = SEQUENCE.indexOf(c); return SEQUENCE[Math.min(i+1,SEQUENCE.length-1)]; }
 function prevFeuille(c) { const i = SEQUENCE.indexOf(c); return SEQUENCE[Math.max(i-1,0)]; }
 
+// ── DASHBOARD ──
 function renderDashboard() {
   const totalCards = SEQUENCE.reduce((s,f) => s + (state.feuilles[f]||[]).length, 0);
   const totalSessions = state.history.length;
   const avgPct = totalSessions > 0 ? Math.round(state.history.reduce((s,h) => s+h.pct,0)/totalSessions) : 0;
+  const hardCount = getHardWords().length;
+
   document.getElementById('dash-overview').innerHTML = `
     <div class="stats-card"><div class="val">${totalCards}</div><div class="lbl">Cartes actives</div></div>
     <div class="stats-card"><div class="val">${totalSessions}</div><div class="lbl">Sessions</div></div>
     <div class="stats-card"><div class="val">${avgPct}%</div><div class="lbl">Score moyen</div></div>
-    <div class="stats-card"><div class="val">${(state.feuilles['Un_an']||[]).length}</div><div class="lbl">Maîtrisés</div></div>`;
+    <div class="stats-card"><div class="val">${state.streak || 0}🔥</div><div class="lbl">Streak</div></div>`;
+
   const barsEl = document.getElementById('dash-bars');
   barsEl.innerHTML = '';
   SEQUENCE.forEach(f => {
@@ -432,6 +576,7 @@ function renderDashboard() {
       <div class="bar-track"><div class="bar-fill ${cls}" style="width:${avg}%"><span>${sessions.length > 0 ? avg+'%' : '—'}</span></div></div>
     </div>`;
   });
+
   const histEl = document.getElementById('dash-history');
   if (!state.history.length) { histEl.innerHTML = '<div style="color:var(--text-muted);font-size:14px;text-align:center;padding:20px">Aucune session</div>'; return; }
   histEl.innerHTML = state.history.slice(0,20).map(h => {
@@ -443,12 +588,14 @@ function renderDashboard() {
   }).join('');
 }
 
+// ── TOAST ──
 function showToast(msg) {
   const t = document.getElementById('toast');
   t.textContent = msg; t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 2500);
 }
 
+// ── INIT ──
 loadLocal();
 renderHome();
 syncNow();
