@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Memory Box">
+<title>Memory Box</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
+
+  :root {
+    --bg: #1a1a1a;
+    --surface: #242424;
+    --surface2: #2e2e2e;
+    --border: #3a3a3a;
+    --text: #f0f0f0;
+    --text-muted: #888;
+    --text-dim: #555;
+    --blue: #009ee0;
+    --blue-dim: #006fa0;
+    --green: #2ea043;
+    --green-dim: #1a6128;
+    --red: #e05252;
+    --red-dim: #8b2020;
+    --gold: #e0a020;
+    --radius: 16px;
+    --radius-sm: 10px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    overflow-x: hidden;
+  }
+
+  /* ── SCREENS ── */
+  .screen { display: none; flex-direction: column; min-height: 100dvh; }
+  .screen.active { display: flex; }
+
+  /* ── HEADER ── */
+  .header {
+    padding: 20px 20px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+  }
+  .header-title {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    color: var(--blue);
+  }
+  .header-sub { font-size: 12px; color: var(--text-muted); font-family: 'DM Mono', monospace; }
+
+  /* ── HOME SCREEN ── */
+  #screen-home { padding: 0; }
+
+  .home-hero {
+    padding: 40px 24px 24px;
+    text-align: center;
+  }
+  .home-hero h1 {
+    font-size: 32px;
+    font-weight: 700;
+    letter-spacing: -1px;
+    color: var(--blue);
+    margin-bottom: 6px;
+  }
+  .home-hero p { font-size: 14px; color: var(--text-muted); }
+
+  .import-zone {
+    margin: 0 20px 24px;
+    border: 2px dashed var(--border);
+    border-radius: var(--radius);
+    padding: 32px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+    background: var(--surface);
+  }
+  .import-zone:hover, .import-zone.drag-over {
+    border-color: var(--blue);
+    background: #009ee015;
+  }
+  .import-zone input { display: none; }
+  .import-icon { font-size: 36px; margin-bottom: 12px; }
+  .import-zone h3 { font-size: 16px; font-weight: 600; margin-bottom: 6px; }
+  .import-zone p { font-size: 13px; color: var(--text-muted); }
+
+  .feuilles-list { padding: 0 20px 100px; }
+  .feuilles-list h2 { font-size: 13px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; font-family: 'DM Mono', monospace; }
+
+  .feuille-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px 18px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s, transform 0.1s;
+    -webkit-user-select: none;
+  }
+  .feuille-card:active { transform: scale(0.98); background: var(--surface2); }
+  .feuille-card.empty { opacity: 0.4; cursor: default; }
+  .feuille-card.empty:active { transform: none; }
+
+  .feuille-info h3 { font-size: 16px; font-weight: 600; margin-bottom: 3px; }
+  .feuille-info span { font-size: 13px; color: var(--text-muted); }
+
+  .feuille-badge {
+    background: var(--blue);
+    color: white;
+    font-size: 13px;
+    font-weight: 700;
+    font-family: 'DM Mono', monospace;
+    padding: 4px 10px;
+    border-radius: 20px;
+    min-width: 36px;
+    text-align: center;
+  }
+  .feuille-badge.zero { background: var(--surface2); color: var(--text-dim); }
+
+  /* ── FLASHCARD SCREEN ── */
+  #screen-flash {
+    padding: 0;
+    justify-content: space-between;
+  }
+
+  .flash-header {
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  .btn-back {
+    width: 36px; height: 36px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; font-size: 18px; flex-shrink: 0;
+    transition: background 0.15s;
+  }
+  .btn-back:active { background: var(--surface2); }
+
+  .flash-meta { flex: 1; }
+  .flash-meta h2 { font-size: 16px; font-weight: 600; }
+  .flash-meta span { font-size: 12px; color: var(--text-muted); font-family: 'DM Mono', monospace; }
+
+  .flash-score-mini {
+    font-size: 12px;
+    font-family: 'DM Mono', monospace;
+    color: var(--text-muted);
+    text-align: right;
+  }
+  .flash-score-mini .ok { color: var(--green); }
+  .flash-score-mini .ko { color: var(--red); }
+
+  /* Progress bar */
+  .progress-bar {
+    height: 3px;
+    background: var(--border);
+    position: relative;
+  }
+  .progress-fill {
+    height: 100%;
+    background: var(--blue);
+    transition: width 0.4s ease;
+    border-radius: 0 2px 2px 0;
+  }
+
+  /* Card area */
+  .card-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 24px 20px;
+    gap: 20px;
+  }
+
+  .card {
+    width: 100%;
+    max-width: 400px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 40px 24px;
+    text-align: center;
+    min-height: 200px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    position: relative;
+    transition: transform 0.3s ease;
+  }
+
+  .card-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--text-dim);
+    font-family: 'DM Mono', monospace;
+  }
+
+  .card-question {
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    line-height: 1.2;
+    color: var(--text);
+  }
+
+  .card-divider {
+    width: 40px;
+    height: 2px;
+    background: var(--border);
+    border-radius: 2px;
+  }
+
+  .card-answer {
+    font-size: 22px;
+    font-weight: 500;
+    color: var(--blue);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+  .card-answer.visible { opacity: 1; }
+
+  /* Buttons area */
+  .btn-area {
+    padding: 16px 20px 40px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+    max-width: 440px;
+    margin: 0 auto;
+  }
+
+  .btn {
+    width: 100%;
+    padding: 18px;
+    border: none;
+    border-radius: var(--radius);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.1s, opacity 0.15s;
+    letter-spacing: -0.2px;
+  }
+  .btn:active { transform: scale(0.97); }
+  .btn:disabled { opacity: 0.3; cursor: default; }
+  .btn:disabled:active { transform: none; }
+
+  .btn-reveal {
+    background: var(--blue);
+    color: white;
+  }
+  .btn-ok {
+    background: var(--green);
+    color: white;
+  }
+  .btn-ko {
+    background: var(--red);
+    color: white;
+  }
+  .btn-row {
+    display: flex;
+    gap: 12px;
+  }
+  .btn-row .btn { flex: 1; }
+
+  .hidden { display: none !important; }
+
+  /* ── RESULTS SCREEN ── */
+  #screen-results {
+    align-items: center;
+    justify-content: center;
+    padding: 40px 24px;
+    text-align: center;
+    gap: 24px;
+  }
+
+  .result-emoji { font-size: 64px; }
+  .result-title { font-size: 28px; font-weight: 700; letter-spacing: -0.5px; }
+  .result-sub { font-size: 15px; color: var(--text-muted); }
+
+  .result-stats {
+    display: flex;
+    gap: 16px;
+    width: 100%;
+    max-width: 320px;
+  }
+  .stat-box {
+    flex: 1;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+  }
+  .stat-val { font-size: 32px; font-weight: 700; font-family: 'DM Mono', monospace; }
+  .stat-val.ok { color: var(--green); }
+  .stat-val.ko { color: var(--red); }
+  .stat-val.pct { color: var(--blue); }
+  .stat-lbl { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+
+  .btn-home {
+    background: var(--surface);
+    color: var(--text);
+    border: 1px solid var(--border);
+    width: 100%;
+    max-width: 320px;
+  }
+
+  /* ── DASHBOARD SCREEN ── */
+  #screen-dash {
+    padding: 0;
+  }
+
+  .dash-content { padding: 20px; overflow-y: auto; flex: 1; padding-bottom: 100px; }
+
+  .dash-section { margin-bottom: 28px; }
+  .dash-section h2 { font-size: 13px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 14px; font-family: 'DM Mono', monospace; }
+
+  .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .stats-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+  }
+  .stats-card .val { font-size: 28px; font-weight: 700; font-family: 'DM Mono', monospace; color: var(--blue); }
+  .stats-card .lbl { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+
+  /* Bar chart */
+  .bar-chart { display: flex; flex-direction: column; gap: 10px; }
+  .bar-row { display: flex; align-items: center; gap: 10px; }
+  .bar-label { font-size: 13px; color: var(--text-muted); width: 110px; flex-shrink: 0; font-family: 'DM Mono', monospace; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .bar-track { flex: 1; height: 28px; background: var(--surface); border-radius: 8px; overflow: hidden; position: relative; }
+  .bar-fill { height: 100%; background: var(--blue); border-radius: 8px; transition: width 0.6s ease; display: flex; align-items: center; justify-content: flex-end; padding-right: 8px; min-width: 36px; }
+  .bar-fill span { font-size: 12px; font-weight: 600; color: white; font-family: 'DM Mono', monospace; }
+  .bar-fill.low { background: var(--red); }
+  .bar-fill.mid { background: var(--gold); }
+  .bar-fill.good { background: var(--green); }
+
+  /* History */
+  .history-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 12px 14px;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .history-info h4 { font-size: 14px; font-weight: 600; margin-bottom: 2px; }
+  .history-info span { font-size: 12px; color: var(--text-muted); font-family: 'DM Mono', monospace; }
+  .history-pct { font-size: 18px; font-weight: 700; font-family: 'DM Mono', monospace; }
+
+  /* ── NAV BAR ── */
+  .nav-bar {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    display: flex;
+    padding: 10px 0 calc(10px + env(safe-area-inset-bottom));
+    z-index: 100;
+  }
+  .nav-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+    padding: 4px 0;
+    transition: color 0.15s;
+    color: var(--text-dim);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    -webkit-user-select: none;
+  }
+  .nav-item.active { color: var(--blue); }
+  .nav-item svg { width: 22px; height: 22px; }
+
+  /* ── TOAST ── */
+  .toast {
+    position: fixed;
+    bottom: 90px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 10px 20px;
+    font-size: 14px;
+    font-weight: 500;
+    opacity: 0;
+    transition: opacity 0.3s, transform 0.3s;
+    pointer-events: none;
+    white-space: nowrap;
+    z-index: 200;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════
+     SCREEN: HOME
+══════════════════════════════════════ -->
+<div id="screen-home" class="screen active">
+  <div class="home-hero">
+    <h1>Memory Box</h1>
+    <p>Système de révision Leitner</p>
+  </div>
+
+  <label class="import-zone" id="import-zone">
+    <input type="file" id="csv-input" accept=".csv">
+    <div class="import-icon">📂</div>
+    <h3>Importer un CSV</h3>
+    <p>Exporte ta Data base depuis Excel<br>et importe-la ici</p>
+  </label>
+
+  <div class="feuilles-list">
+    <h2>Feuilles de révision</h2>
+    <div id="feuilles-container"></div>
+  </div>
+
+  <nav class="nav-bar">
+    <div class="nav-item active" onclick="showTab('home')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      Accueil
+    </div>
+    <div class="nav-item" onclick="showTab('dash')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      Dashboard
+    </div>
+  </nav>
+</div>
+
+<!-- ══════════════════════════════════════
+     SCREEN: FLASHCARD
+══════════════════════════════════════ -->
+<div id="screen-flash" class="screen">
+  <div class="flash-header">
+    <div class="btn-back" onclick="backToHome()">←</div>
+    <div class="flash-meta">
+      <h2 id="flash-feuille-name">Demain</h2>
+      <span id="flash-counter">1/10</span>
+    </div>
+    <div class="flash-score-mini">
+      <div><span class="ok" id="score-ok-mini">0</span> OK</div>
+      <div><span class="ko" id="score-ko-mini">0</span> Raté</div>
+    </div>
+  </div>
+
+  <div class="progress-bar">
+    <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+  </div>
+
+  <div class="card-area">
+    <div class="card" id="flash-card">
+      <div class="card-label" id="card-label-q">Mot</div>
+      <div class="card-question" id="card-question">—</div>
+      <div class="card-divider"></div>
+      <div class="card-label" id="card-label-a">Traduction</div>
+      <div class="card-answer" id="card-answer">—</div>
+    </div>
+  </div>
+
+  <div class="btn-area">
+    <button class="btn btn-reveal" id="btn-reveal" onclick="revealCard()">Révéler</button>
+    <div class="btn-row hidden" id="btn-result-row">
+      <button class="btn btn-ko" onclick="answer(false)">✗ Raté</button>
+      <button class="btn btn-ok" onclick="answer(true)">✓ Je savais</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     SCREEN: RESULTS
+══════════════════════════════════════ -->
+<div id="screen-results" class="screen">
+  <div class="result-emoji" id="result-emoji">🎉</div>
+  <div>
+    <div class="result-title">Session terminée !</div>
+    <div class="result-sub" id="result-feuille">Demain</div>
+  </div>
+  <div class="result-stats">
+    <div class="stat-box">
+      <div class="stat-val ok" id="res-ok">0</div>
+      <div class="stat-lbl">OK</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-val ko" id="res-ko">0</div>
+      <div class="stat-lbl">Raté</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-val pct" id="res-pct">0%</div>
+      <div class="stat-lbl">Score</div>
+    </div>
+  </div>
+  <button class="btn btn-home" onclick="backToHome()">← Retour</button>
+</div>
+
+<!-- ══════════════════════════════════════
+     SCREEN: DASHBOARD
+══════════════════════════════════════ -->
+<div id="screen-dash" class="screen">
+  <div class="header">
+    <div>
+      <div class="header-title">Dashboard</div>
+      <div class="header-sub">Progression globale</div>
+    </div>
+  </div>
+
+  <div class="dash-content">
+    <div class="dash-section">
+      <h2>Vue d'ensemble</h2>
+      <div class="stats-grid" id="dash-overview"></div>
+    </div>
+    <div class="dash-section">
+      <h2>Taux de réussite par feuille</h2>
+      <div class="bar-chart" id="dash-bars"></div>
+    </div>
+    <div class="dash-section">
+      <h2>Historique des sessions</h2>
+      <div id="dash-history"></div>
+    </div>
+  </div>
+
+  <nav class="nav-bar">
+    <div class="nav-item" onclick="showTab('home')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      Accueil
+    </div>
+    <div class="nav-item active" onclick="showTab('dash')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      Dashboard
+    </div>
+  </nav>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ══════════════════════════════════════
+// DATA
+// ══════════════════════════════════════
+const SEQUENCE = ['Demain','Impair','Lundi','Premier_du_mois','3_mois','6_mois','Un_an'];
+const SENS_NORMAL = { Demain:true, Impair:false, Lundi:true, Premier_du_mois:false, '3_mois':true, '6_mois':false, Un_an:true };
+
+let state = {
+  feuilles: {}, // { Demain: [{theme, face1, face2}, ...], ... }
+  history: [],  // [{date, feuille, ok, rate, pct}]
+};
+
+let session = {
+  feuille: null,
+  cards: [],
+  index: 0,
+  total: 0,
+  ok: 0,
+  rate: 0,
+  sensNormal: true,
+};
+
+// ── Init feuilles vides
+SEQUENCE.forEach(f => { state.feuilles[f] = []; });
+
+// ── Load from localStorage
+function loadState() {
+  try {
+    const s = localStorage.getItem('memorybox');
+    if (s) {
+      const parsed = JSON.parse(s);
+      if (parsed.feuilles) state.feuilles = parsed.feuilles;
+      if (parsed.history) state.history = parsed.history;
+      // Ensure all feuilles exist
+      SEQUENCE.forEach(f => { if (!state.feuilles[f]) state.feuilles[f] = []; });
+    }
+  } catch(e) {}
+}
+
+function saveState() {
+  localStorage.setItem('memorybox', JSON.stringify(state));
+}
+
+// ══════════════════════════════════════
+// CSV IMPORT
+// ══════════════════════════════════════
+document.getElementById('csv-input').addEventListener('change', function(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(ev) {
+    parseCSV(ev.target.result);
+  };
+  reader.readAsText(file, 'UTF-8');
+  this.value = '';
+});
+
+function parseCSV(text) {
+  const lines = text.trim().split('\n');
+  if (lines.length < 2) { showToast('CSV vide ou invalide'); return; }
+
+  // Reset Demain
+  state.feuilles['Demain'] = [];
+
+  let count = 0;
+  for (let i = 1; i < lines.length; i++) {
+    const cols = lines[i].split(';');
+    // Also try comma separator
+    const cols2 = lines[i].split(',');
+    const row = cols.length >= 3 ? cols : cols2;
+    if (row.length >= 3) {
+      state.feuilles['Demain'].push({
+        theme: row[0].trim().replace(/^"|"$/g,''),
+        face1: row[1].trim().replace(/^"|"$/g,''),
+        face2: row[2].trim().replace(/^"|"$/g,''),
+      });
+      count++;
+    }
+  }
+
+  saveState();
+  renderHome();
+  showToast(`${count} mots importés dans Demain ✓`);
+}
+
+// ══════════════════════════════════════
+// NAVIGATION
+// ══════════════════════════════════════
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + id).classList.add('active');
+}
+
+function showTab(tab) {
+  if (tab === 'home') {
+    renderHome();
+    showScreen('home');
+    document.querySelectorAll('#screen-home .nav-item, #screen-dash .nav-item').forEach(el => {
+      el.classList.toggle('active', el.getAttribute('onclick').includes('home'));
+    });
+  } else if (tab === 'dash') {
+    renderDashboard();
+    showScreen('dash');
+  }
+}
+
+function backToHome() {
+  renderHome();
+  showScreen('home');
+}
+
+// ══════════════════════════════════════
+// HOME
+// ══════════════════════════════════════
+function renderHome() {
+  const container = document.getElementById('feuilles-container');
+  container.innerHTML = '';
+
+  SEQUENCE.forEach(f => {
+    const cards = state.feuilles[f] || [];
+    const count = cards.length;
+    const isEmpty = count === 0;
+
+    const div = document.createElement('div');
+    div.className = 'feuille-card' + (isEmpty ? ' empty' : '');
+    div.innerHTML = `
+      <div class="feuille-info">
+        <h3>${f.replace(/_/g,' ')}</h3>
+        <span>${isEmpty ? 'Aucune carte' : count + ' carte' + (count > 1 ? 's' : '')}</span>
+      </div>
+      <div class="feuille-badge ${isEmpty ? 'zero'}">${count}</div>
+    `;
+    if (!isEmpty) {
+      div.onclick = () => startSession(f);
+    }
+    container.appendChild(div);
+  });
+}
+
+// ══════════════════════════════════════
+// SESSION
+// ══════════════════════════════════════
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function startSession(feuille) {
+  const cards = state.feuilles[feuille];
+  if (!cards || cards.length === 0) return;
+
+  session = {
+    feuille,
+    cards: shuffle([...cards]),
+    index: 0,
+    total: cards.length,
+    ok: 0,
+    rate: 0,
+    sensNormal: SENS_NORMAL[feuille] !== false,
+    results: [], // {card, reussi}
+  };
+
+  // Clear the feuille (will be repopulated after session)
+  state.feuilles[feuille] = [];
+
+  showScreen('flash');
+  showCard();
+}
+
+function showCard() {
+  const card = session.cards[session.index];
+  const sensNormal = session.sensNormal;
+
+  document.getElementById('flash-feuille-name').textContent = session.feuille.replace(/_/g,' ');
+  document.getElementById('flash-counter').textContent = (session.index + 1) + '/' + session.total;
+  document.getElementById('card-label-q').textContent = sensNormal ? 'Mot' : 'Traduction';
+  document.getElementById('card-question').textContent = sensNormal ? card.face1 : card.face2;
+  document.getElementById('card-label-a').textContent = sensNormal ? 'Traduction' : 'Mot';
+  document.getElementById('card-answer').textContent = sensNormal ? card.face2 : card.face1;
+  document.getElementById('card-answer').classList.remove('visible');
+
+  document.getElementById('btn-reveal').classList.remove('hidden');
+  document.getElementById('btn-result-row').classList.add('hidden');
+
+  // Score mini
+  document.getElementById('score-ok-mini').textContent = session.ok;
+  document.getElementById('score-ko-mini').textContent = session.rate;
+
+  // Progress
+  const pct = (session.index / session.total) * 100;
+  document.getElementById('progress-fill').style.width = pct + '%';
+}
+
+function revealCard() {
+  document.getElementById('card-answer').classList.add('visible');
+  document.getElementById('btn-reveal').classList.add('hidden');
+  document.getElementById('btn-result-row').classList.remove('hidden');
+}
+
+function answer(reussi) {
+  const card = session.cards[session.index];
+  session.results.push({ card, reussi });
+
+  if (reussi) session.ok++;
+  else session.rate++;
+
+  session.index++;
+
+  if (session.index >= session.total) {
+    endSession();
+  } else {
+    showCard();
+  }
+}
+
+function endSession() {
+  // Move cards to correct feuilles
+  session.results.forEach(({ card, reussi }) => {
+    const dest = reussi ? nextFeuille(session.feuille) : prevFeuille(session.feuille);
+    if (!state.feuilles[dest]) state.feuilles[dest] = [];
+    state.feuilles[dest].push(card);
+  });
+
+  // Save history
+  const total = session.ok + session.rate;
+  const pct = total > 0 ? Math.round((session.ok / total) * 100) : 0;
+  state.history.unshift({
+    date: new Date().toLocaleString('fr-FR'),
+    feuille: session.feuille,
+    ok: session.ok,
+    rate: session.rate,
+    pct,
+  });
+
+  saveState();
+
+  // Show results
+  document.getElementById('result-feuille').textContent = session.feuille.replace(/_/g,' ');
+  document.getElementById('res-ok').textContent = session.ok;
+  document.getElementById('res-ko').textContent = session.rate;
+  document.getElementById('res-pct').textContent = pct + '%';
+  document.getElementById('result-emoji').textContent = pct >= 80 ? '🎉' : pct >= 50 ? '💪' : '📚';
+  document.getElementById('progress-fill').style.width = '100%';
+
+  showScreen('results');
+}
+
+function nextFeuille(current) {
+  const i = SEQUENCE.indexOf(current);
+  return i < SEQUENCE.length - 1 ? SEQUENCE[i + 1] : SEQUENCE[SEQUENCE.length - 1];
+}
+
+function prevFeuille(current) {
+  const i = SEQUENCE.indexOf(current);
+  return i > 0 ? SEQUENCE[i - 1] : SEQUENCE[0];
+}
+
+// ══════════════════════════════════════
+// DASHBOARD
+// ══════════════════════════════════════
+function renderDashboard() {
+  // Overview
+  const totalCards = SEQUENCE.reduce((s, f) => s + (state.feuilles[f]||[]).length, 0);
+  const totalSessions = state.history.length;
+  const avgPct = totalSessions > 0 ? Math.round(state.history.reduce((s,h) => s + h.pct, 0) / totalSessions) : 0;
+  const totalWords = SEQUENCE.reduce((s, f) => s + (state.feuilles[f]||[]).length, 0);
+
+  document.getElementById('dash-overview').innerHTML = `
+    <div class="stats-card"><div class="val">${totalCards}</div><div class="lbl">Cartes actives</div></div>
+    <div class="stats-card"><div class="val">${totalSessions}</div><div class="lbl">Sessions</div></div>
+    <div class="stats-card"><div class="val">${avgPct}%</div><div class="lbl">Score moyen</div></div>
+    <div class="stats-card"><div class="val">${(state.feuilles['Un_an']||[]).length}</div><div class="lbl">Maîtrisés</div></div>
+  `;
+
+  // Bars — avg per feuille
+  const barsEl = document.getElementById('dash-bars');
+  barsEl.innerHTML = '';
+  SEQUENCE.forEach(f => {
+    const sessions = state.history.filter(h => h.feuille === f);
+    const avg = sessions.length > 0 ? Math.round(sessions.reduce((s,h) => s + h.pct, 0) / sessions.length) : null;
+    const displayAvg = avg !== null ? avg : 0;
+    const cls = displayAvg >= 80 ? 'good' : displayAvg >= 50 ? 'mid' : 'low';
+    const label = avg !== null ? displayAvg + '%' : '—';
+
+    barsEl.innerHTML += `
+      <div class="bar-row">
+        <div class="bar-label">${f.replace(/_/g,' ')}</div>
+        <div class="bar-track">
+          <div class="bar-fill ${cls}" style="width:${displayAvg}%"><span>${label}</span></div>
+        </div>
+      </div>
+    `;
+  });
+
+  // History
+  const histEl = document.getElementById('dash-history');
+  if (state.history.length === 0) {
+    histEl.innerHTML = '<div style="color:var(--text-muted);font-size:14px;text-align:center;padding:20px">Aucune session enregistrée</div>';
+    return;
+  }
+  histEl.innerHTML = state.history.slice(0, 20).map(h => {
+    const color = h.pct >= 80 ? 'var(--green)' : h.pct >= 50 ? 'var(--gold)' : 'var(--red)';
+    return `
+      <div class="history-item">
+        <div class="history-info">
+          <h4>${h.feuille.replace(/_/g,' ')}</h4>
+          <span>${h.date} · ${h.ok}✓ ${h.rate}✗</span>
+        </div>
+        <div class="history-pct" style="color:${color}">${h.pct}%</div>
+      </div>
+    `;
+  }).join('');
+}
+
+// ══════════════════════════════════════
+// TOAST
+// ══════════════════════════════════════
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ══════════════════════════════════════
+// INIT
+// ══════════════════════════════════════
+loadState();
+renderHome();
+</script>
+</body>
+</html>
+```
