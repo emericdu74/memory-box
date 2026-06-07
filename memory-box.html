@@ -1,0 +1,473 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta http-equiv="Content-Style-Type" content="text/css">
+  <title></title>
+  <meta name="Generator" content="Cocoa HTML Writer">
+  <meta name="CocoaVersion" content="2575.7">
+  <style type="text/css">
+    p.p1 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px Helvetica}
+    p.p2 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px Helvetica; min-height: 14.0px}
+  </style>
+</head>
+<body>
+<p class="p1">&lt;!DOCTYPE html&gt;</p>
+<p class="p1">&lt;html lang="fr"&gt;</p>
+<p class="p1">&lt;head&gt;</p>
+<p class="p1">&lt;meta charset="UTF-8"&gt;</p>
+<p class="p1">&lt;meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"&gt;</p>
+<p class="p1">&lt;meta name="apple-mobile-web-app-capable" content="yes"&gt;</p>
+<p class="p1">&lt;meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"&gt;</p>
+<p class="p1">&lt;meta name="apple-mobile-web-app-title" content="Memory Box"&gt;</p>
+<p class="p1">&lt;title&gt;Memory Box&lt;/title&gt;</p>
+<p class="p1">&lt;style&gt;</p>
+<p class="p1">@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&amp;family=DM+Mono:wght@400;500&amp;display=swap');</p>
+<p class="p1">:root{--bg:#1a1a1a;--surface:#242424;--surface2:#2e2e2e;--border:#3a3a3a;--text:#f0f0f0;--text-muted:#888;--text-dim:#555;--blue:#009ee0;--green:#2ea043;--red:#e05252;--gold:#e0a020;--radius:16px;--radius-sm:10px}</p>
+<p class="p1">*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}</p>
+<p class="p1">body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100dvh;display:flex;flex-direction:column;overflow-x:hidden}</p>
+<p class="p1">.screen{display:none;flex-direction:column;min-height:100dvh}.screen.active{display:flex}</p>
+<p class="p1">.nav-bar{position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1px solid var(--border);display:flex;padding:10px 0 calc(10px + env(safe-area-inset-bottom));z-index:100}</p>
+<p class="p1">.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;padding:4px 0;color:var(--text-dim);font-size:10px;text-transform:uppercase;letter-spacing:.5px;-webkit-user-select:none;transition:color .15s}</p>
+<p class="p1">.nav-item.active{color:var(--blue)}.nav-item svg{width:22px;height:22px}</p>
+<p class="p1">.scroll-content{flex:1;overflow-y:auto;padding-bottom:80px}</p>
+<p class="p1">.home-hero{padding:32px 24px 20px;text-align:center}</p>
+<p class="p1">.home-hero h1{font-size:30px;font-weight:700;letter-spacing:-1px;color:var(--blue);margin-bottom:4px}</p>
+<p class="p1">.home-hero p{font-size:14px;color:var(--text-muted)}</p>
+<p class="p1">.sync-bar{margin:0 20px 16px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px 16px;display:flex;align-items:center;justify-content:space-between}</p>
+<p class="p1">.sync-status{font-size:13px;color:var(--text-muted)}.sync-status span{color:var(--text);font-weight:500}</p>
+<p class="p1">.btn-sync{background:var(--blue);color:white;border:none;border-radius:8px;padding:7px 14px;font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif}</p>
+<p class="p1">.btn-sync:active{opacity:.8}</p>
+<p class="p1">.section-title{font-size:12px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;padding:0 20px;margin-bottom:10px;font-family:'DM Mono',monospace}</p>
+<p class="p1">.feuille-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;margin:0 20px 10px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;transition:background .15s,transform .1s;-webkit-user-select:none}</p>
+<p class="p1">.feuille-card:active{transform:scale(.98);background:var(--surface2)}.feuille-card.empty{opacity:.4;cursor:default}.feuille-card.empty:active{transform:none}</p>
+<p class="p1">.feuille-card.database-card{border-color:var(--blue)}</p>
+<p class="p1">.feuille-info h3{font-size:16px;font-weight:600;margin-bottom:3px}.feuille-info span{font-size:13px;color:var(--text-muted)}</p>
+<p class="p1">.feuille-badge{background:var(--blue);color:white;font-size:13px;font-weight:700;font-family:'DM Mono',monospace;padding:4px 10px;border-radius:20px;min-width:36px;text-align:center}</p>
+<p class="p1">.feuille-badge.zero{background:var(--surface2);color:var(--text-dim)}.feuille-badge.db{background:transparent;color:var(--blue);border:1px solid var(--blue)}</p>
+<p class="p1">.db-header{padding:16px 20px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--border);flex-shrink:0}</p>
+<p class="p1">.btn-back{width:36px;height:36px;background:var(--surface);border:1px solid var(--border);border-radius:10px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;flex-shrink:0}</p>
+<p class="p1">.btn-back:active{background:var(--surface2)}.db-meta{flex:1}.db-meta h2{font-size:17px;font-weight:600}.db-meta span{font-size:12px;color:var(--text-muted);font-family:'DM Mono',monospace}</p>
+<p class="p1">.db-search{padding:12px 20px;flex-shrink:0;border-bottom:1px solid var(--border)}</p>
+<p class="p1">.db-search input{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 14px;color:var(--text);font-size:15px;font-family:'DM Sans',sans-serif;outline:none}</p>
+<p class="p1">.db-search input:focus{border-color:var(--blue)}.db-search input::placeholder{color:var(--text-dim)}</p>
+<p class="p1">.db-select-bar{padding:10px 20px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);flex-shrink:0}</p>
+<p class="p1">.db-select-bar span{font-size:13px;color:var(--text-muted)}.btn-select-all{font-size:13px;color:var(--blue);font-weight:600;cursor:pointer;background:none;border:none;font-family:'DM Sans',sans-serif}</p>
+<p class="p1">.db-list{flex:1;overflow-y:auto;padding-bottom:100px}</p>
+<p class="p1">.db-item{display:flex;align-items:center;gap:14px;padding:14px 20px;border-bottom:1px solid var(--border);cursor:pointer;-webkit-user-select:none}</p>
+<p class="p1">.db-item:active{background:var(--surface)}.db-item.selected{background:#009ee010}</p>
+<p class="p1">.db-checkbox{width:22px;height:22px;flex-shrink:0;border:2px solid var(--border);border-radius:6px;display:flex;align-items:center;justify-content:center;transition:all .15s}</p>
+<p class="p1">.db-item.selected .db-checkbox{background:var(--blue);border-color:var(--blue)}</p>
+<p class="p1">.db-checkbox::after{content:'✓';color:white;font-size:13px;font-weight:700;opacity:0;transition:opacity .15s}.db-item.selected .db-checkbox::after{opacity:1}</p>
+<p class="p1">.db-word{flex:1}.db-word h4{font-size:15px;font-weight:600;margin-bottom:2px}.db-word span{font-size:13px;color:var(--text-muted)}</p>
+<p class="p1">.db-footer{position:fixed;bottom:0;left:0;right:0;padding:16px 20px calc(16px + env(safe-area-inset-bottom));background:var(--bg);border-top:1px solid var(--border)}</p>
+<p class="p1">.btn-send{width:100%;padding:16px;background:var(--green);color:white;border:none;border-radius:var(--radius);font-size:16px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif}</p>
+<p class="p1">.btn-send:active{opacity:.8}.btn-send:disabled{opacity:.3;cursor:default}</p>
+<p class="p1">#screen-flash{justify-content:space-between}</p>
+<p class="p1">.flash-header{padding:16px 20px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--border);flex-shrink:0}</p>
+<p class="p1">.flash-meta{flex:1}.flash-meta h2{font-size:16px;font-weight:600}.flash-meta span{font-size:12px;color:var(--text-muted);font-family:'DM Mono',monospace}</p>
+<p class="p1">.flash-score-mini{font-size:12px;font-family:'DM Mono',monospace;color:var(--text-muted);text-align:right}</p>
+<p class="p1">.flash-score-mini .ok{color:var(--green)}.flash-score-mini .ko{color:var(--red)}</p>
+<p class="p1">.progress-bar{height:3px;background:var(--border);flex-shrink:0}.progress-fill{height:100%;background:var(--blue);transition:width .4s ease}</p>
+<p class="p1">.card-area{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px 20px;gap:16px}</p>
+<p class="p1">.card{width:100%;max-width:400px;background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:40px 24px;text-align:center;min-height:200px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px}</p>
+<p class="p1">.card-label{font-size:11px;text-transform:uppercase;letter-spacing:1.5px;color:var(--text-dim);font-family:'DM Mono',monospace}</p>
+<p class="p1">.card-question{font-size:28px;font-weight:700;letter-spacing:-.5px;line-height:1.2}</p>
+<p class="p1">.card-divider{width:40px;height:2px;background:var(--border);border-radius:2px}</p>
+<p class="p1">.card-answer{font-size:22px;font-weight:500;color:var(--blue);opacity:0;transition:opacity .3s ease}.card-answer.visible{opacity:1}</p>
+<p class="p1">.btn-area{padding:16px 20px 40px;display:flex;flex-direction:column;gap:12px;width:100%;max-width:440px;margin:0 auto;flex-shrink:0}</p>
+<p class="p1">.btn{width:100%;padding:18px;border:none;border-radius:var(--radius);font-family:'DM Sans',sans-serif;font-size:16px;font-weight:600;cursor:pointer;transition:transform .1s,opacity .15s}</p>
+<p class="p1">.btn:active{transform:scale(.97)}.btn:disabled{opacity:.3;cursor:default}</p>
+<p class="p1">.btn-reveal{background:var(--blue);color:white}.btn-ok{background:var(--green);color:white}.btn-ko{background:var(--red);color:white}</p>
+<p class="p1">.btn-row{display:flex;gap:12px}.btn-row .btn{flex:1}.hidden{display:none!important}</p>
+<p class="p1">#screen-results{align-items:center;justify-content:center;padding:40px 24px;text-align:center;gap:24px}</p>
+<p class="p1">.result-emoji{font-size:64px}.result-title{font-size:28px;font-weight:700;letter-spacing:-.5px}.result-sub{font-size:15px;color:var(--text-muted)}</p>
+<p class="p1">.result-stats{display:flex;gap:16px;width:100%;max-width:320px}</p>
+<p class="p1">.stat-box{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px 12px;display:flex;flex-direction:column;align-items:center;gap:6px}</p>
+<p class="p1">.stat-val{font-size:32px;font-weight:700;font-family:'DM Mono',monospace}.stat-val.ok{color:var(--green)}.stat-val.ko{color:var(--red)}.stat-val.pct{color:var(--blue)}</p>
+<p class="p1">.stat-lbl{font-size:12px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px}</p>
+<p class="p1">.btn-home{background:var(--surface);color:var(--text);border:1px solid var(--border);width:100%;max-width:320px}</p>
+<p class="p1">#screen-dash{padding:0}.dash-content{padding:20px;overflow-y:auto;flex:1;padding-bottom:100px}</p>
+<p class="p1">.dash-section{margin-bottom:28px}.dash-section h2{font-size:12px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:14px;font-family:'DM Mono',monospace}</p>
+<p class="p1">.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}</p>
+<p class="p1">.stats-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px}</p>
+<p class="p1">.stats-card .val{font-size:28px;font-weight:700;font-family:'DM Mono',monospace;color:var(--blue)}.stats-card .lbl{font-size:12px;color:var(--text-muted);margin-top:4px}</p>
+<p class="p1">.bar-chart{display:flex;flex-direction:column;gap:10px}.bar-row{display:flex;align-items:center;gap:10px}</p>
+<p class="p1">.bar-label{font-size:12px;color:var(--text-muted);width:100px;flex-shrink:0;font-family:'DM Mono',monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}</p>
+<p class="p1">.bar-track{flex:1;height:28px;background:var(--surface);border-radius:8px;overflow:hidden}</p>
+<p class="p1">.bar-fill{height:100%;border-radius:8px;transition:width .6s ease;display:flex;align-items:center;justify-content:flex-end;padding-right:8px;min-width:36px}</p>
+<p class="p1">.bar-fill span{font-size:12px;font-weight:600;color:white;font-family:'DM Mono',monospace}</p>
+<p class="p1">.bar-fill.low{background:var(--red)}.bar-fill.mid{background:var(--gold)}.bar-fill.good{background:var(--green)}</p>
+<p class="p1">.history-item{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between}</p>
+<p class="p1">.history-info h4{font-size:14px;font-weight:600;margin-bottom:2px}.history-info span{font-size:12px;color:var(--text-muted);font-family:'DM Mono',monospace}</p>
+<p class="p1">.history-pct{font-size:18px;font-weight:700;font-family:'DM Mono',monospace}</p>
+<p class="p1">.header{padding:20px 20px 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);flex-shrink:0}</p>
+<p class="p1">.header-title{font-size:22px;font-weight:700;letter-spacing:-.5px;color:var(--blue)}.header-sub{font-size:12px;color:var(--text-muted);font-family:'DM Mono',monospace;margin-top:2px}</p>
+<p class="p1">.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--surface2);border:1px solid var(--border);border-radius:20px;padding:10px 20px;font-size:14px;font-weight:500;opacity:0;transition:opacity .3s,transform .3s;pointer-events:none;white-space:nowrap;z-index:200}</p>
+<p class="p1">.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}</p>
+<p class="p1">.loader{position:fixed;inset:0;background:#1a1a1acc;display:flex;align-items:center;justify-content:center;z-index:300;backdrop-filter:blur(4px)}.loader.hidden{display:none}</p>
+<p class="p1">.spinner{width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:spin .8s linear infinite}</p>
+<p class="p1">@keyframes spin{to{transform:rotate(360deg)}}</p>
+<p class="p1">&lt;/style&gt;</p>
+<p class="p1">&lt;/head&gt;</p>
+<p class="p1">&lt;body&gt;</p>
+<p class="p1">&lt;div class="loader hidden" id="loader"&gt;&lt;div class="spinner"&gt;&lt;/div&gt;&lt;/div&gt;</p>
+<p class="p1">&lt;div id="screen-home" class="screen active"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;div class="scroll-content"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;div class="home-hero"&gt;&lt;h1&gt;Memory Box&lt;/h1&gt;&lt;p&gt;Système de révision Leitner&lt;/p&gt;&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;div class="sync-bar"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;div class="sync-status"&gt;Sync : &lt;span id="sync-status-text"&gt;Chargement...&lt;/span&gt;&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;button class="btn-sync" onclick="syncNow()"&gt;↻ Sync&lt;/button&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;div class="section-title" style="margin-top:8px"&gt;Base de données&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;div id="db-card-container"&gt;&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;div class="section-title" style="margin-top:16px"&gt;Feuilles de révision&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;div id="feuilles-container"&gt;&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;nav class="nav-bar"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;div class="nav-item active" onclick="showTab('home')"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"&gt;&lt;path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/&gt;&lt;polyline points="9 22 9 12 15 12 15 22"/&gt;&lt;/svg&gt;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>Accueil</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;div class="nav-item" onclick="showTab('dash')"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"&gt;&lt;line x1="18" y1="20" x2="18" y2="10"/&gt;&lt;line x1="12" y1="20" x2="12" y2="4"/&gt;&lt;line x1="6" y1="20" x2="6" y2="14"/&gt;&lt;/svg&gt;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>Stats</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;/nav&gt;</p>
+<p class="p1">&lt;/div&gt;</p>
+<p class="p1">&lt;div id="screen-database" class="screen"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;div class="db-header"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;div class="btn-back" onclick="backToHome()"&gt;←&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;div class="db-meta"&gt;&lt;h2&gt;Data Base&lt;/h2&gt;&lt;span id="db-counter"&gt;0 mots&lt;/span&gt;&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;div class="db-search"&gt;&lt;input type="text" id="db-search-input" placeholder="Rechercher..." oninput="filterDB()"&gt;&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;div class="db-select-bar"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;span id="db-selected-count"&gt;0 sélectionné(s)&lt;/span&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;button class="btn-select-all" onclick="toggleSelectAll()"&gt;Tout sélectionner&lt;/button&gt;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;div class="db-list" id="db-list"&gt;&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;div class="db-footer"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;button class="btn-send" id="btn-send-demain" onclick="sendToDemain()" disabled&gt;Envoyer en Demain (0)&lt;/button&gt;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;/div&gt;</p>
+<p class="p1">&lt;/div&gt;</p>
+<p class="p1">&lt;div id="screen-flash" class="screen"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;div class="flash-header"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;div class="btn-back" onclick="backToHome()"&gt;←&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;div class="flash-meta"&gt;&lt;h2 id="flash-feuille-name"&gt;Demain&lt;/h2&gt;&lt;span id="flash-counter"&gt;1/10&lt;/span&gt;&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;div class="flash-score-mini"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;div&gt;&lt;span class="ok" id="score-ok-mini"&gt;0&lt;/span&gt; OK&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;div&gt;&lt;span class="ko" id="score-ko-mini"&gt;0&lt;/span&gt; Raté&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;div class="progress-bar"&gt;&lt;div class="progress-fill" id="progress-fill" style="width:0%"&gt;&lt;/div&gt;&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;div class="card-area"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;div class="card"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;div class="card-label" id="card-label-q"&gt;Mot&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;div class="card-question" id="card-question"&gt;—&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;div class="card-divider"&gt;&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;div class="card-label" id="card-label-a"&gt;Traduction&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;div class="card-answer" id="card-answer"&gt;—&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;div class="btn-area"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;button class="btn btn-reveal" id="btn-reveal" onclick="revealCard()"&gt;Révéler&lt;/button&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;div class="btn-row hidden" id="btn-result-row"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;button class="btn btn-ko" onclick="answer(false)"&gt;✗ Raté&lt;/button&gt;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;button class="btn btn-ok" onclick="answer(true)"&gt;✓ Je savais&lt;/button&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;/div&gt;</p>
+<p class="p1">&lt;/div&gt;</p>
+<p class="p1">&lt;div id="screen-results" class="screen"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;div class="result-emoji" id="result-emoji"&gt;🎉&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;div&gt;&lt;div class="result-title"&gt;Session terminée !&lt;/div&gt;&lt;div class="result-sub" id="result-feuille"&gt;Demain&lt;/div&gt;&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;div class="result-stats"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;div class="stat-box"&gt;&lt;div class="stat-val ok" id="res-ok"&gt;0&lt;/div&gt;&lt;div class="stat-lbl"&gt;OK&lt;/div&gt;&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;div class="stat-box"&gt;&lt;div class="stat-val ko" id="res-ko"&gt;0&lt;/div&gt;&lt;div class="stat-lbl"&gt;Raté&lt;/div&gt;&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;div class="stat-box"&gt;&lt;div class="stat-val pct" id="res-pct"&gt;0%&lt;/div&gt;&lt;div class="stat-lbl"&gt;Score&lt;/div&gt;&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;button class="btn btn-home" onclick="backToHome()"&gt;← Retour&lt;/button&gt;</p>
+<p class="p1">&lt;/div&gt;</p>
+<p class="p1">&lt;div id="screen-dash" class="screen"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;div class="header"&gt;&lt;div&gt;&lt;div class="header-title"&gt;Dashboard&lt;/div&gt;&lt;div class="header-sub"&gt;Ta progression&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;div class="dash-content"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;div class="dash-section"&gt;&lt;h2&gt;Vue d'ensemble&lt;/h2&gt;&lt;div class="stats-grid" id="dash-overview"&gt;&lt;/div&gt;&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;div class="dash-section"&gt;&lt;h2&gt;Taux de réussite par feuille&lt;/h2&gt;&lt;div class="bar-chart" id="dash-bars"&gt;&lt;/div&gt;&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;div class="dash-section"&gt;&lt;h2&gt;Historique&lt;/h2&gt;&lt;div id="dash-history"&gt;&lt;/div&gt;&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;nav class="nav-bar"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;div class="nav-item" onclick="showTab('home')"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"&gt;&lt;path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/&gt;&lt;polyline points="9 22 9 12 15 12 15 22"/&gt;&lt;/svg&gt;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>Accueil</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;div class="nav-item active" onclick="showTab('dash')"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"&gt;&lt;line x1="18" y1="20" x2="18" y2="10"/&gt;&lt;line x1="12" y1="20" x2="12" y2="4"/&gt;&lt;line x1="6" y1="20" x2="6" y2="14"/&gt;&lt;/svg&gt;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>Stats</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;/nav&gt;</p>
+<p class="p1">&lt;/div&gt;</p>
+<p class="p1">&lt;div class="toast" id="toast"&gt;&lt;/div&gt;</p>
+<p class="p1">&lt;script&gt;</p>
+<p class="p1">const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwyrFlQYwSjt0HpGMyKJfPfWGiuwLco0jZMFXjCe_AlWLjGZZuq0mQsg9XeTU-VHcbz/exec';</p>
+<p class="p1">const SEQUENCE = ['Demain','Impair','Lundi','Premier_du_mois','3_mois','6_mois','Un_an'];</p>
+<p class="p1">const SENS_NORMAL = {Demain:true,Impair:false,Lundi:true,Premier_du_mois:false,'3_mois':true,'6_mois':false,Un_an:true};</p>
+<p class="p2"><br></p>
+<p class="p1">let state = {database:[],feuilles:{},history:[]};</p>
+<p class="p1">SEQUENCE.forEach(f =&gt; state.feuilles[f] = []);</p>
+<p class="p1">let session = {feuille:null,cards:[],index:0,total:0,ok:0,rate:0,results:[],sensNormal:true};</p>
+<p class="p1">let dbSelected = new Set();</p>
+<p class="p1">let dbFiltered = [];</p>
+<p class="p2"><br></p>
+<p class="p1">function loadLocal() {</p>
+<p class="p1"><span class="Apple-converted-space">  </span>try {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>const s = localStorage.getItem('memorybox_v2');</p>
+<p class="p1"><span class="Apple-converted-space">    </span>if (s) {</p>
+<p class="p1"><span class="Apple-converted-space">      </span>const p = JSON.parse(s);</p>
+<p class="p1"><span class="Apple-converted-space">      </span>if (p.database) state.database = p.database;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>if (p.feuilles) state.feuilles = p.feuilles;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>if (p.history) state.history = p.history;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>SEQUENCE.forEach(f =&gt; { if (!state.feuilles[f]) state.feuilles[f] = []; });</p>
+<p class="p1"><span class="Apple-converted-space">    </span>}</p>
+<p class="p1"><span class="Apple-converted-space">  </span>} catch(e) {}</p>
+<p class="p1">}</p>
+<p class="p2"><br></p>
+<p class="p1">function saveLocal() {</p>
+<p class="p1"><span class="Apple-converted-space">  </span>try { localStorage.setItem('memorybox_v2', JSON.stringify(state)); } catch(e) {}</p>
+<p class="p1">}</p>
+<p class="p2"><br></p>
+<p class="p1">async function syncNow() {</p>
+<p class="p1"><span class="Apple-converted-space">  </span>showLoader(true);</p>
+<p class="p1"><span class="Apple-converted-space">  </span>document.getElementById('sync-status-text').textContent = 'Synchronisation...';</p>
+<p class="p1"><span class="Apple-converted-space">  </span>try {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>const res = await fetch(SCRIPT_URL + '?action=read');</p>
+<p class="p1"><span class="Apple-converted-space">    </span>const data = await res.json();</p>
+<p class="p1"><span class="Apple-converted-space">    </span>if (data.feuilles) state.feuilles = data.feuilles;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>if (data.database) state.database = data.database;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>if (data.history) state.history = data.history;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>SEQUENCE.forEach(f =&gt; { if (!state.feuilles[f]) state.feuilles[f] = []; });</p>
+<p class="p1"><span class="Apple-converted-space">    </span>saveLocal();</p>
+<p class="p1"><span class="Apple-converted-space">    </span>document.getElementById('sync-status-text').textContent = 'OK ' + new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});</p>
+<p class="p1"><span class="Apple-converted-space">    </span>renderHome();</p>
+<p class="p1"><span class="Apple-converted-space">    </span>showToast('Synchronisé ✓');</p>
+<p class="p1"><span class="Apple-converted-space">  </span>} catch(e) {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>document.getElementById('sync-status-text').textContent = 'Erreur';</p>
+<p class="p1"><span class="Apple-converted-space">    </span>showToast('Erreur de synchronisation');</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}</p>
+<p class="p1"><span class="Apple-converted-space">  </span>showLoader(false);</p>
+<p class="p1">}</p>
+<p class="p2"><br></p>
+<p class="p1">async function pushToSheets() {</p>
+<p class="p1"><span class="Apple-converted-space">  </span>try {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>await fetch(SCRIPT_URL, {method:'POST',body:JSON.stringify({action:'write',feuilles:state.feuilles,database:state.database})});</p>
+<p class="p1"><span class="Apple-converted-space">  </span>} catch(e) {}</p>
+<p class="p1">}</p>
+<p class="p2"><br></p>
+<p class="p1">async function pushHistory(entry) {</p>
+<p class="p1"><span class="Apple-converted-space">  </span>try {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>await fetch(SCRIPT_URL, {method:'POST',body:JSON.stringify({action:'saveHistory',entry})});</p>
+<p class="p1"><span class="Apple-converted-space">  </span>} catch(e) {}</p>
+<p class="p1">}</p>
+<p class="p2"><br></p>
+<p class="p1">function showScreen(id) {</p>
+<p class="p1"><span class="Apple-converted-space">  </span>document.querySelectorAll('.screen').forEach(s =&gt; s.classList.remove('active'));</p>
+<p class="p1"><span class="Apple-converted-space">  </span>document.getElementById('screen-' + id).classList.add('active');</p>
+<p class="p1">}</p>
+<p class="p2"><br></p>
+<p class="p1">function showTab(tab) {</p>
+<p class="p1"><span class="Apple-converted-space">  </span>if (tab === 'home') { renderHome(); showScreen('home'); }</p>
+<p class="p1"><span class="Apple-converted-space">  </span>else if (tab === 'dash') { renderDashboard(); showScreen('dash'); }</p>
+<p class="p1">}</p>
+<p class="p2"><br></p>
+<p class="p1">function backToHome() { renderHome(); showScreen('home'); }</p>
+<p class="p1">function showLoader(v) { document.getElementById('loader').classList.toggle('hidden', !v); }</p>
+<p class="p2"><br></p>
+<p class="p1">function renderHome() {</p>
+<p class="p1"><span class="Apple-converted-space">  </span>const dbCount = state.database.length;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>document.getElementById('db-card-container').innerHTML = `</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;div class="feuille-card database-card" onclick="openDatabase()"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;div class="feuille-info"&gt;&lt;h3&gt;Data Base&lt;/h3&gt;&lt;span&gt;Sélectionner les mots à apprendre&lt;/span&gt;&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;div class="feuille-badge db"&gt;${dbCount}&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;/div&gt;`;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>const container = document.getElementById('feuilles-container');</p>
+<p class="p1"><span class="Apple-converted-space">  </span>container.innerHTML = '';</p>
+<p class="p1"><span class="Apple-converted-space">  </span>SEQUENCE.forEach(f =&gt; {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>const cards = state.feuilles[f] || [];</p>
+<p class="p1"><span class="Apple-converted-space">    </span>const count = cards.length;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>const isEmpty = count === 0;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>const div = document.createElement('div');</p>
+<p class="p1"><span class="Apple-converted-space">    </span>div.className = 'feuille-card' + (isEmpty ? ' empty' : '');</p>
+<p class="p1"><span class="Apple-converted-space">    </span>div.innerHTML = `</p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;div class="feuille-info"&gt;&lt;h3&gt;${f.replace(/_/g,' ')}&lt;/h3&gt;&lt;span&gt;${isEmpty ? 'Aucune carte' : count + ' carte' + (count &gt; 1 ? 's' : '')}&lt;/span&gt;&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;div class="feuille-badge ${isEmpty ? 'zero' : ''}"&gt;${count}&lt;/div&gt;`;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>if (!isEmpty) div.onclick = () =&gt; startSession(f);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>container.appendChild(div);</p>
+<p class="p1"><span class="Apple-converted-space">  </span>});</p>
+<p class="p1">}</p>
+<p class="p2"><br></p>
+<p class="p1">function openDatabase() {</p>
+<p class="p1"><span class="Apple-converted-space">  </span>dbSelected = new Set();</p>
+<p class="p1"><span class="Apple-converted-space">  </span>dbFiltered = [...state.database];</p>
+<p class="p1"><span class="Apple-converted-space">  </span>document.getElementById('db-search-input').value = '';</p>
+<p class="p1"><span class="Apple-converted-space">  </span>renderDBList();</p>
+<p class="p1"><span class="Apple-converted-space">  </span>showScreen('database');</p>
+<p class="p1">}</p>
+<p class="p2"><br></p>
+<p class="p1">function renderDBList() {</p>
+<p class="p1"><span class="Apple-converted-space">  </span>document.getElementById('db-counter').textContent = state.database.length + ' mots';</p>
+<p class="p1"><span class="Apple-converted-space">  </span>document.getElementById('db-selected-count').textContent = dbSelected.size + ' sélectionné(s)';</p>
+<p class="p1"><span class="Apple-converted-space">  </span>document.getElementById('btn-send-demain').textContent = 'Envoyer en Demain (' + dbSelected.size + ')';</p>
+<p class="p1"><span class="Apple-converted-space">  </span>document.getElementById('btn-send-demain').disabled = dbSelected.size === 0;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>document.getElementById('db-list').innerHTML = dbFiltered.map(card =&gt; {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>const realIdx = state.database.indexOf(card);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>const sel = dbSelected.has(realIdx);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>return `&lt;div class="db-item ${sel ? 'selected' : ''}" onclick="toggleSelect(${realIdx})"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;div class="db-checkbox"&gt;&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;div class="db-word"&gt;&lt;h4&gt;${card.face1}&lt;/h4&gt;&lt;span&gt;${card.face2}&lt;/span&gt;&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;/div&gt;`;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}).join('');</p>
+<p class="p1">}</p>
+<p class="p2"><br></p>
+<p class="p1">function toggleSelect(idx) {</p>
+<p class="p1"><span class="Apple-converted-space">  </span>if (dbSelected.has(idx)) dbSelected.delete(idx); else dbSelected.add(idx);</p>
+<p class="p1"><span class="Apple-converted-space">  </span>renderDBList();</p>
+<p class="p1">}</p>
+<p class="p2"><br></p>
+<p class="p1">function toggleSelectAll() {</p>
+<p class="p1"><span class="Apple-converted-space">  </span>dbSelected = dbSelected.size === state.database.length ? new Set() : new Set(state.database.map((_,i) =&gt; i));</p>
+<p class="p1"><span class="Apple-converted-space">  </span>renderDBList();</p>
+<p class="p1">}</p>
+<p class="p2"><br></p>
+<p class="p1">function filterDB() {</p>
+<p class="p1"><span class="Apple-converted-space">  </span>const q = document.getElementById('db-search-input').value.toLowerCase();</p>
+<p class="p1"><span class="Apple-converted-space">  </span>dbFiltered = state.database.filter(c =&gt; c.face1.toLowerCase().includes(q) || c.face2.toLowerCase().includes(q));</p>
+<p class="p1"><span class="Apple-converted-space">  </span>renderDBList();</p>
+<p class="p1">}</p>
+<p class="p2"><br></p>
+<p class="p1">function sendToDemain() {</p>
+<p class="p1"><span class="Apple-converted-space">  </span>if (dbSelected.size === 0) return;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>const toSend = [...dbSelected].map(i =&gt; state.database[i]);</p>
+<p class="p1"><span class="Apple-converted-space">  </span>state.feuilles['Demain'] = [...(state.feuilles['Demain'] || []), ...toSend];</p>
+<p class="p1"><span class="Apple-converted-space">  </span>saveLocal();</p>
+<p class="p1"><span class="Apple-converted-space">  </span>pushToSheets();</p>
+<p class="p1"><span class="Apple-converted-space">  </span>showToast(toSend.length + ' mot(s) envoyé(s) en Demain ✓');</p>
+<p class="p1"><span class="Apple-converted-space">  </span>dbSelected = new Set();</p>
+<p class="p1"><span class="Apple-converted-space">  </span>backToHome();</p>
+<p class="p1">}</p>
+<p class="p2"><br></p>
+<p class="p1">function shuffle(arr) {</p>
+<p class="p1"><span class="Apple-converted-space">  </span>const a = [...arr];</p>
+<p class="p1"><span class="Apple-converted-space">  </span>for (let i = a.length - 1; i &gt; 0; i--) {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>const j = Math.floor(Math.random() * (i + 1));</p>
+<p class="p1"><span class="Apple-converted-space">    </span>[a[i], a[j]] = [a[j], a[i]];</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}</p>
+<p class="p1"><span class="Apple-converted-space">  </span>return a;</p>
+<p class="p1">}</p>
+<p class="p2"><br></p>
+<p class="p1">function startSession(feuille) {</p>
+<p class="p1"><span class="Apple-converted-space">  </span>const cards = state.feuilles[feuille];</p>
+<p class="p1"><span class="Apple-converted-space">  </span>if (!cards || cards.length === 0) return;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>session = {feuille,cards:shuffle([...cards]),index:0,total:cards.length,ok:0,rate:0,results:[],sensNormal:SENS_NORMAL[feuille] !== false};</p>
+<p class="p1"><span class="Apple-converted-space">  </span>state.feuilles[feuille] = [];</p>
+<p class="p1"><span class="Apple-converted-space">  </span>showScreen('flash');</p>
+<p class="p1"><span class="Apple-converted-space">  </span>showCard();</p>
+<p class="p1">}</p>
+<p class="p2"><br></p>
+<p class="p1">function showCard() {</p>
+<p class="p1"><span class="Apple-converted-space">  </span>const card = session.cards[session.index];</p>
+<p class="p1"><span class="Apple-converted-space">  </span>document.getElementById('flash-feuille-name').textContent = session.feuille.replace(/_/g,' ');</p>
+<p class="p1"><span class="Apple-converted-space">  </span>document.getElementById('flash-counter').textContent = (session.index + 1) + '/' + session.total;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>document.getElementById('card-label-q').textContent = session.sensNormal ? 'Mot' : 'Traduction';</p>
+<p class="p1"><span class="Apple-converted-space">  </span>document.getElementById('card-question').textContent = session.sensNormal ? card.face1 : card.face2;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>document.getElementById('card-label-a').textContent = session.sensNormal ? 'Traduction' : 'Mot';</p>
+<p class="p1"><span class="Apple-converted-space">  </span>document.getElementById('card-answer').textContent = session.sensNormal ? card.face2 : card.face1;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>document.getElementById('card-answer').classList.remove('visible');</p>
+<p class="p1"><span class="Apple-converted-space">  </span>document.getElementById('btn-reveal').classList.remove('hidden');</p>
+<p class="p1"><span class="Apple-converted-space">  </span>document.getElementById('btn-result-row').classList.add('hidden');</p>
+<p class="p1"><span class="Apple-converted-space">  </span>document.getElementById('score-ok-mini').textContent = session.ok;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>document.getElementById('score-ko-mini').textContent = session.rate;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>document.getElementById('progress-fill').style.width = (session.index / session.total * 100) + '%';</p>
+<p class="p1">}</p>
+<p class="p2"><br></p>
+<p class="p1">function revealCard() {</p>
+<p class="p1"><span class="Apple-converted-space">  </span>document.getElementById('card-answer').classList.add('visible');</p>
+<p class="p1"><span class="Apple-converted-space">  </span>document.getElementById('btn-reveal').classList.add('hidden');</p>
+<p class="p1"><span class="Apple-converted-space">  </span>document.getElementById('btn-result-row').classList.remove('hidden');</p>
+<p class="p1">}</p>
+<p class="p2"><br></p>
+<p class="p1">function answer(reussi) {</p>
+<p class="p1"><span class="Apple-converted-space">  </span>const card = session.cards[session.index];</p>
+<p class="p1"><span class="Apple-converted-space">  </span>session.results.push({card,reussi});</p>
+<p class="p1"><span class="Apple-converted-space">  </span>if (reussi) session.ok++; else session.rate++;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>session.index++;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>if (session.index &gt;= session.total) endSession(); else showCard();</p>
+<p class="p1">}</p>
+<p class="p2"><br></p>
+<p class="p1">function endSession() {</p>
+<p class="p1"><span class="Apple-converted-space">  </span>session.results.forEach(({card,reussi}) =&gt; {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>const dest = reussi ? nextFeuille(session.feuille) : prevFeuille(session.feuille);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>if (!state.feuilles[dest]) state.feuilles[dest] = [];</p>
+<p class="p1"><span class="Apple-converted-space">    </span>state.feuilles[dest].push(card);</p>
+<p class="p1"><span class="Apple-converted-space">  </span>});</p>
+<p class="p1"><span class="Apple-converted-space">  </span>const total = session.ok + session.rate;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>const pct = total &gt; 0 ? Math.round((session.ok / total) * 100) : 0;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>const entry = {date:new Date().toLocaleString('fr-FR'),feuille:session.feuille,ok:session.ok,rate:session.rate,pct};</p>
+<p class="p1"><span class="Apple-converted-space">  </span>state.history.unshift(entry);</p>
+<p class="p1"><span class="Apple-converted-space">  </span>saveLocal();</p>
+<p class="p1"><span class="Apple-converted-space">  </span>pushToSheets();</p>
+<p class="p1"><span class="Apple-converted-space">  </span>pushHistory(entry);</p>
+<p class="p1"><span class="Apple-converted-space">  </span>document.getElementById('result-feuille').textContent = session.feuille.replace(/_/g,' ');</p>
+<p class="p1"><span class="Apple-converted-space">  </span>document.getElementById('res-ok').textContent = session.ok;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>document.getElementById('res-ko').textContent = session.rate;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>document.getElementById('res-pct').textContent = pct + '%';</p>
+<p class="p1"><span class="Apple-converted-space">  </span>document.getElementById('result-emoji').textContent = pct &gt;= 80 ? '🎉' : pct &gt;= 50 ? '💪' : '📚';</p>
+<p class="p1"><span class="Apple-converted-space">  </span>document.getElementById('progress-fill').style.width = '100%';</p>
+<p class="p1"><span class="Apple-converted-space">  </span>showScreen('results');</p>
+<p class="p1">}</p>
+<p class="p2"><br></p>
+<p class="p1">function nextFeuille(c) { const i = SEQUENCE.indexOf(c); return SEQUENCE[Math.min(i+1,SEQUENCE.length-1)]; }</p>
+<p class="p1">function prevFeuille(c) { const i = SEQUENCE.indexOf(c); return SEQUENCE[Math.max(i-1,0)]; }</p>
+<p class="p2"><br></p>
+<p class="p1">function renderDashboard() {</p>
+<p class="p1"><span class="Apple-converted-space">  </span>const totalCards = SEQUENCE.reduce((s,f) =&gt; s + (state.feuilles[f]||[]).length, 0);</p>
+<p class="p1"><span class="Apple-converted-space">  </span>const totalSessions = state.history.length;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>const avgPct = totalSessions &gt; 0 ? Math.round(state.history.reduce((s,h) =&gt; s+h.pct,0)/totalSessions) : 0;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>document.getElementById('dash-overview').innerHTML = `</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;div class="stats-card"&gt;&lt;div class="val"&gt;${totalCards}&lt;/div&gt;&lt;div class="lbl"&gt;Cartes actives&lt;/div&gt;&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;div class="stats-card"&gt;&lt;div class="val"&gt;${totalSessions}&lt;/div&gt;&lt;div class="lbl"&gt;Sessions&lt;/div&gt;&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;div class="stats-card"&gt;&lt;div class="val"&gt;${avgPct}%&lt;/div&gt;&lt;div class="lbl"&gt;Score moyen&lt;/div&gt;&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;div class="stats-card"&gt;&lt;div class="val"&gt;${(state.feuilles['Un_an']||[]).length}&lt;/div&gt;&lt;div class="lbl"&gt;Maîtrisés&lt;/div&gt;&lt;/div&gt;`;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>const barsEl = document.getElementById('dash-bars');</p>
+<p class="p1"><span class="Apple-converted-space">  </span>barsEl.innerHTML = '';</p>
+<p class="p1"><span class="Apple-converted-space">  </span>SEQUENCE.forEach(f =&gt; {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>const sessions = state.history.filter(h =&gt; h.feuille === f);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>const avg = sessions.length &gt; 0 ? Math.round(sessions.reduce((s,h) =&gt; s+h.pct,0)/sessions.length) : 0;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>const cls = avg &gt;= 80 ? 'good' : avg &gt;= 50 ? 'mid' : 'low';</p>
+<p class="p1"><span class="Apple-converted-space">    </span>barsEl.innerHTML += `&lt;div class="bar-row"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;div class="bar-label"&gt;${f.replace(/_/g,' ')}&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;div class="bar-track"&gt;&lt;div class="bar-fill ${cls}" style="width:${avg}%"&gt;&lt;span&gt;${sessions.length &gt; 0 ? avg+'%' : '—'}&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;/div&gt;`;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>});</p>
+<p class="p1"><span class="Apple-converted-space">  </span>const histEl = document.getElementById('dash-history');</p>
+<p class="p1"><span class="Apple-converted-space">  </span>if (!state.history.length) { histEl.innerHTML = '&lt;div style="color:var(--text-muted);font-size:14px;text-align:center;padding:20px"&gt;Aucune session&lt;/div&gt;'; return; }</p>
+<p class="p1"><span class="Apple-converted-space">  </span>histEl.innerHTML = state.history.slice(0,20).map(h =&gt; {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>const color = h.pct &gt;= 80 ? 'var(--green)' : h.pct &gt;= 50 ? 'var(--gold)' : 'var(--red)';</p>
+<p class="p1"><span class="Apple-converted-space">    </span>return `&lt;div class="history-item"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;div class="history-info"&gt;&lt;h4&gt;${h.feuille.replace(/_/g,' ')}&lt;/h4&gt;&lt;span&gt;${h.date} · ${h.ok}✓ ${h.rate}✗&lt;/span&gt;&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;div class="history-pct" style="color:${color}"&gt;${h.pct}%&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;/div&gt;`;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}).join('');</p>
+<p class="p1">}</p>
+<p class="p2"><br></p>
+<p class="p1">function showToast(msg) {</p>
+<p class="p1"><span class="Apple-converted-space">  </span>const t = document.getElementById('toast');</p>
+<p class="p1"><span class="Apple-converted-space">  </span>t.textContent = msg; t.classList.add('show');</p>
+<p class="p1"><span class="Apple-converted-space">  </span>setTimeout(() =&gt; t.classList.remove('show'), 2500);</p>
+<p class="p1">}</p>
+<p class="p2"><br></p>
+<p class="p1">loadLocal();</p>
+<p class="p1">renderHome();</p>
+<p class="p1">syncNow();</p>
+<p class="p1">&lt;/script&gt;</p>
+<p class="p1">&lt;/body&gt;</p>
+<p class="p1">&lt;/html&gt;</p>
+</body>
+</html>
