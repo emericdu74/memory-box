@@ -551,15 +551,21 @@ function filterDB() {
   renderDBList();
 }
 
-function sendToDemain() {
+async function sendToDemain() {
   if (dbSelected.size === 0) return;
   const toSend = [...dbSelected].map(i => state.database[i]);
   state.feuilles['Demain'] = [...(state.feuilles['Demain'] || []), ...toSend];
   const selectedIndices = [...dbSelected].sort((a,b) => b - a);
   selectedIndices.forEach(i => state.database.splice(i, 1));
   saveLocal();
-  pushToSheets();
-  showToast(toSend.length + ' mot(s) envoyé(s) en Demain ✓');
+  showLoader(true);
+  try {
+    await fetch(SCRIPT_URL, {method:'POST', body:JSON.stringify({action:'write', feuilles:state.feuilles, database:state.database})});
+    showToast(toSend.length + ' mot(s) envoyé(s) en Demain ✓');
+  } catch(e) {
+    showToast('Envoyé en local — sync manuelle nécessaire');
+  }
+  showLoader(false);
   dbSelected = new Set();
   backToHome();
 }
