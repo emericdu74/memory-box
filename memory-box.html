@@ -272,6 +272,9 @@ async function syncNow() {
   showLoader(true);
   document.getElementById('sync-status-text').textContent = 'Synchronisation...';
   try {
+    // D'abord pousser l'état local vers Sheets
+    await fetch(SCRIPT_URL, {method:'POST',body:JSON.stringify({action:'write',feuilles:state.feuilles,database:state.database})});
+    // Puis lire pour récupérer l'historique
     const res = await fetch(SCRIPT_URL + '?action=read');
     const data = await res.json();
     if (data.feuilles) state.feuilles = data.feuilles;
