@@ -135,12 +135,12 @@ body{font-family:'DM Sans',sans-serif;background:linear-gradient(160deg,#141414 
       <div class="streak-badge" id="streak-display" style="display:none"></div>
     </div>
     <div class="sync-bar">
-      <div class="sync-status">Sync : <span id="sync-status-text">Chargement...</span></div>
+      <div class="sync-status">Sync : <span id="sync-status-text">Manuel</span></div>
       <button class="btn-sync" onclick="syncNow()">↻ Sync</button>
     </div>
     <div class="global-search">
       <span class="global-search-icon">🔍</span>
-      <input type="text" id="global-search-input" placeholder="Rechercher un mot dans toutes les feuilles..." oninput="globalSearch()">
+      <input type="text" id="global-search-input" placeholder="Rechercher un mot..." oninput="globalSearch()">
     </div>
     <div class="search-results" id="search-results"></div>
     <div id="home-sections">
@@ -193,7 +193,7 @@ body{font-family:'DM Sans',sans-serif;background:linear-gradient(160deg,#141414 
       <div class="card-hard-label hidden" id="card-hard-label">⚡ Mot difficile</div>
       <div class="card-label" id="card-label-q">Mot</div>
       <div class="card-question" id="card-question">—</div>
-      <button class="btn-audio" id="btn-audio" onclick="speakCard()" title="Écouter la prononciation">🔊</button>
+      <button class="btn-audio" id="btn-audio" onclick="speakCard()" title="Écouter">🔊</button>
       <div class="card-divider"></div>
       <div class="card-label" id="card-label-a">Traduction</div>
       <div class="card-answer" id="card-answer">—</div>
@@ -244,7 +244,7 @@ const SENS_NORMAL = {Demain:true,Impair:false,Lundi:true,Premier_du_mois:false,'
 
 let state = {database:[],feuilles:{},history:[],hardWords:{},streak:0,lastSessionDate:null};
 SEQUENCE.forEach(f => state.feuilles[f] = []);
-let session = {feuille:null,cards:[],index:0,total:0,ok:0,rate:0,results:[],sensNormal:true,isHardSession:false,currentTheme:''};
+let session = {feuille:null,cards:[],index:0,total:0,ok:0,rate:0,results:[],sensNormal:true,isHardSession:false};
 let dbSelected = new Set();
 let dbFiltered = [];
 
@@ -268,6 +268,7 @@ function saveLocal() {
   try { localStorage.setItem('memorybox_v2', JSON.stringify(state)); } catch(e) {}
 }
 
+// ── SYNC : lecture seule depuis Sheets ──
 async function syncNow() {
   showLoader(true);
   document.getElementById('sync-status-text').textContent = 'Synchronisation...';
@@ -289,6 +290,7 @@ async function syncNow() {
   showLoader(false);
 }
 
+// ── PUSH : écriture vers Sheets ──
 async function pushToSheets() {
   try {
     await fetch(SCRIPT_URL, {method:'POST',body:JSON.stringify({action:'write',feuilles:state.feuilles,database:state.database})});
@@ -382,18 +384,14 @@ function globalSearch() {
   const q = document.getElementById('global-search-input').value.toLowerCase().trim();
   const resultsEl = document.getElementById('search-results');
   const sectionsEl = document.getElementById('home-sections');
-
   if (!q) {
     resultsEl.classList.remove('visible');
     resultsEl.innerHTML = '';
     sectionsEl.style.display = 'block';
     return;
   }
-
   sectionsEl.style.display = 'none';
   const results = [];
-
-  // Chercher dans toutes les feuilles
   SEQUENCE.forEach(f => {
     (state.feuilles[f] || []).forEach(card => {
       if (card.face1.toLowerCase().includes(q) || card.face2.toLowerCase().includes(q)) {
@@ -401,26 +399,19 @@ function globalSearch() {
       }
     });
   });
-
-  // Chercher dans la Data Base
   (state.database || []).forEach(card => {
     if (card.face1.toLowerCase().includes(q) || card.face2.toLowerCase().includes(q)) {
       results.push({card, loc: 'Data Base'});
     }
   });
-
   if (results.length === 0) {
     resultsEl.innerHTML = '<div style="color:var(--text-muted);font-size:14px;text-align:center;padding:20px">Aucun résultat</div>';
   } else {
     resultsEl.innerHTML = results.slice(0,20).map(r => `
       <div class="search-result-item">
-        <div class="search-result-word">
-          <h4>${r.card.face1}</h4>
-          <span>${r.card.face2}</span>
-        </div>
+        <div class="search-result-word"><h4>${r.card.face1}</h4><span>${r.card.face2}</span></div>
         <div class="search-result-loc">${r.loc}</div>
-      </div>
-    `).join('');
+      </div>`).join('');
   }
   resultsEl.classList.add('visible');
 }
@@ -434,9 +425,7 @@ function recordResult(card, reussi) {
   if (!reussi) {
     state.hardWords[key] = (state.hardWords[key] || 0) + 1;
   } else {
-    if (state.hardWords[key] > 0) {
-      state.hardWords[key] = Math.max(0, state.hardWords[key] - 1);
-    }
+    if (state.hardWords[key] > 0) state.hardWords[key] = Math.max(0, state.hardWords[key] - 1);
   }
 }
 
@@ -454,12 +443,10 @@ function getHardWords() {
 function renderHome() {
   renderDate();
   renderStreak();
-
   const dbCount = state.database.length;
   document.getElementById('db-card-container').innerHTML = `
     <div class="feuille-card database-card" onclick="openDatabase()">
-      <div class="feuille-left">
-        <div class="feuille-icon">🗃️</div>
+      <div class="feuille-left"><div class="feuille-icon">🗃️</div>
         <div class="feuille-info"><h3>Data Base</h3><span>Sélectionner les mots à apprendre</span></div>
       </div>
       <div class="feuille-badge db">${dbCount}</div>
@@ -471,8 +458,7 @@ function renderHome() {
   if (hardCount > 0) {
     hardContainer.innerHTML = `
       <div class="feuille-card hard-card" onclick="startHardSession()">
-        <div class="feuille-left">
-          <div class="feuille-icon">💪</div>
+        <div class="feuille-left"><div class="feuille-icon">💪</div>
           <div class="feuille-info"><h3>Mots difficiles</h3><span>Ratés 2 fois ou plus</span></div>
         </div>
         <div class="feuille-badge hard">${hardCount}</div>
@@ -480,8 +466,7 @@ function renderHome() {
   } else {
     hardContainer.innerHTML = `
       <div class="feuille-card empty">
-        <div class="feuille-left">
-          <div class="feuille-icon">💪</div>
+        <div class="feuille-left"><div class="feuille-icon">💪</div>
           <div class="feuille-info"><h3>Mots difficiles</h3><span>Aucun mot difficile</span></div>
         </div>
         <div class="feuille-badge zero">0</div>
@@ -497,8 +482,7 @@ function renderHome() {
     const div = document.createElement('div');
     div.className = 'feuille-card' + (isEmpty ? ' empty' : '');
     div.innerHTML = `
-      <div class="feuille-left">
-        <div class="feuille-icon">${FEUILLE_ICONS[f] || '📋'}</div>
+      <div class="feuille-left"><div class="feuille-icon">${FEUILLE_ICONS[f] || '📋'}</div>
         <div class="feuille-info"><h3>${f.replace(/_/g,' ')}</h3><span>${isEmpty ? 'Aucune carte' : count + ' carte' + (count > 1 ? 's' : '')}</span></div>
       </div>
       <div class="feuille-badge ${isEmpty ? 'zero' : ''}">${count}</div>`;
@@ -557,12 +541,10 @@ async function sendToDemain() {
   saveLocal();
   showLoader(true);
   try {
-    await fetch(SCRIPT_URL, {method:'POST', body:JSON.stringify({action:'write', feuilles:state.feuilles, database:state.database})});
-    showToast(toSend.length + ' mot(s) envoyé(s) en Demain ✓');
-  } catch(e) {
-    showToast('Envoyé en local — sync manuelle nécessaire');
-  }
+    await fetch(SCRIPT_URL, {method:'POST',body:JSON.stringify({action:'write',feuilles:state.feuilles,database:state.database})});
+  } catch(e) {}
   showLoader(false);
+  showToast(toSend.length + ' mot(s) envoyé(s) en Demain ✓');
   dbSelected = new Set();
   backToHome();
 }
@@ -580,11 +562,7 @@ function shuffle(arr) {
 function startSession(feuille) {
   const cards = state.feuilles[feuille];
   if (!cards || cards.length === 0) return;
-  session = {
-    feuille, cards:shuffle([...cards]), index:0, total:cards.length,
-    ok:0, rate:0, results:[], sensNormal:SENS_NORMAL[feuille] !== false,
-    isHardSession:false
-  };
+  session = {feuille, cards:shuffle([...cards]), index:0, total:cards.length, ok:0, rate:0, results:[], sensNormal:SENS_NORMAL[feuille] !== false, isHardSession:false};
   state.feuilles[feuille] = [];
   showScreen('flash');
   showCard();
@@ -593,10 +571,7 @@ function startSession(feuille) {
 function startHardSession() {
   const hardWords = getHardWords();
   if (hardWords.length === 0) return;
-  session = {
-    feuille:'Difficiles', cards:shuffle(hardWords), index:0, total:hardWords.length,
-    ok:0, rate:0, results:[], sensNormal:true, isHardSession:true
-  };
+  session = {feuille:'Difficiles', cards:shuffle(hardWords), index:0, total:hardWords.length, ok:0, rate:0, results:[], sensNormal:true, isHardSession:true};
   showScreen('flash');
   showCard();
 }
@@ -618,13 +593,8 @@ function showCard() {
   document.getElementById('progress-fill').style.width = (session.index / session.total * 100) + '%';
   const hardLabel = document.getElementById('card-hard-label');
   const flashCard = document.getElementById('flash-card');
-  if (isHard) {
-    hardLabel.classList.remove('hidden');
-    flashCard.classList.add('hard-card-flash');
-  } else {
-    hardLabel.classList.add('hidden');
-    flashCard.classList.remove('hard-card-flash');
-  }
+  if (isHard) { hardLabel.classList.remove('hidden'); flashCard.classList.add('hard-card-flash'); }
+  else { hardLabel.classList.add('hidden'); flashCard.classList.remove('hard-card-flash'); }
 }
 
 function revealCard() {
@@ -710,7 +680,6 @@ function showToast(msg) {
 
 loadLocal();
 renderHome();
-syncNow();
 </script>
 </body>
 </html>
