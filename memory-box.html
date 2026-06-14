@@ -117,6 +117,20 @@ body{font-family:'DM Sans',sans-serif;background:linear-gradient(160deg,#141414 
 .history-pct{font-size:18px;font-weight:700;font-family:'DM Mono',monospace}
 .dash-header{padding:20px 20px 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);flex-shrink:0}
 .dash-header-title{font-size:22px;font-weight:700;letter-spacing:-.5px;color:var(--blue)}.dash-header-sub{font-size:12px;color:var(--text-muted);font-family:'DM Mono',monospace;margin-top:2px}
+.calendar{background:rgba(36,36,36,0.8);border:1px solid var(--border);border-radius:var(--radius);padding:16px;box-shadow:0 2px 8px rgba(0,0,0,0.2)}
+.cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.cal-title{font-size:15px;font-weight:600;text-transform:capitalize}
+.cal-nav{display:flex;gap:8px}
+.cal-nav button{width:30px;height:30px;background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.cal-nav button:active{background:var(--surface2)}
+.cal-weekdays{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:6px}
+.cal-weekday{text-align:center;font-size:10px;color:var(--text-dim);font-family:'DM Mono',monospace;text-transform:uppercase}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.cal-day{aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:13px;border-radius:8px;cursor:pointer;color:var(--text-muted);transition:all .12s;font-family:'DM Mono',monospace}
+.cal-day.empty{cursor:default}
+.cal-day.has-streak{background:var(--blue);color:white;font-weight:700;box-shadow:0 2px 8px #009ee040}
+.cal-day.today{border:1.5px solid var(--gold)}
+.cal-day:not(.empty):active{transform:scale(.9)}
 .toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(20px);background:rgba(36,36,36,0.95);border:1px solid var(--border);border-radius:20px;padding:10px 20px;font-size:14px;font-weight:500;opacity:0;transition:opacity .3s,transform .3s;pointer-events:none;white-space:nowrap;z-index:200;backdrop-filter:blur(10px)}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 .loader{position:fixed;inset:0;background:rgba(14,14,14,0.8);display:flex;align-items:center;justify-content:center;z-index:300;backdrop-filter:blur(8px)}.loader.hidden{display:none}
@@ -223,6 +237,7 @@ body{font-family:'DM Sans',sans-serif;background:linear-gradient(160deg,#141414 
   <div class="dash-header"><div><div class="dash-header-title">Dashboard</div><div class="dash-header-sub">Ta progression</div></div></div>
   <div class="dash-content">
     <div class="dash-section"><h2>Vue d'ensemble</h2><div class="stats-grid" id="dash-overview"></div></div>
+    <div class="dash-section"><h2>Calendrier des révisions</h2><div class="calendar" id="calendar"></div></div>
     <div class="dash-section"><h2>Taux de réussite par feuille</h2><div class="bar-chart" id="dash-bars"></div></div>
     <div class="dash-section"><h2>Historique</h2><div id="dash-history"></div></div>
   </div>
@@ -244,11 +259,12 @@ const SEQUENCE = ['Demain','Impair','Lundi','Premier_du_mois','3_mois','6_mois',
 const FEUILLE_ICONS = {Demain:'📅',Impair:'🔁',Lundi:'📆',Premier_du_mois:'🗓️','3_mois':'📊','6_mois':'📈',Un_an:'🏆'};
 const SENS_NORMAL = {Demain:true,Impair:false,Lundi:true,Premier_du_mois:false,'3_mois':true,'6_mois':false,Un_an:true};
 
-let state = {database:[],feuilles:{},history:[],hardWords:{},streak:0,lastSessionDate:null};
+let state = {database:[],feuilles:{},history:[],hardWords:{},streakDates:[]};
 SEQUENCE.forEach(f => state.feuilles[f] = []);
 let session = {feuille:null,cards:[],index:0,total:0,ok:0,rate:0,results:[],sensNormal:true,isHardSession:false};
 let dbSelected = new Set();
 let dbFiltered = [];
+let calViewDate = new Date();
 
 function loadLocal() {
   try {
@@ -259,8 +275,7 @@ function loadLocal() {
       if (p.feuilles) state.feuilles = p.feuilles;
       if (p.history) state.history = p.history;
       if (p.hardWords) state.hardWords = p.hardWords;
-      if (p.streak) state.streak = p.streak;
-      if (p.lastSessionDate) state.lastSessionDate = p.lastSessionDate;
+      if (p.streakDates) state.streakDates = p.streakDates;
       SEQUENCE.forEach(f => { if (!state.feuilles[f]) state.feuilles[f] = []; });
     }
   } catch(e) {}
@@ -268,6 +283,57 @@ function loadLocal() {
 
 function saveLocal() {
   try { localStorage.setItem('memorybox_v2', JSON.stringify(state)); } catch(e) {}
+}
+
+// ── Date utils (format AAAA-MM-JJ local) ──
+function dateKey(d) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2,'0');
+  const j = String(d.getDate()).padStart(2,'0');
+  return y + '-' + m + '-' + j;
+}
+
+// ── STREAK : calculé depuis les dates ──
+function computeStreak() {
+  if (!state.streakDates || state.streakDates.length === 0) return 0;
+  const set = new Set(state.streakDates);
+  let streak = 0;
+  let d = new Date();
+  // Si aujourd'hui n'est pas marqué, on part d'hier (le streak n'est pas cassé tant qu'hier compte)
+  if (!set.has(dateKey(d))) {
+    d.setDate(d.getDate() - 1);
+    if (!set.has(dateKey(d))) return 0;
+  }
+  while (set.has(dateKey(d))) {
+    streak++;
+    d.setDate(d.getDate() - 1);
+  }
+  return streak;
+}
+
+async function addStreakToday() {
+  const today = dateKey(new Date());
+  if (!state.streakDates.includes(today)) {
+    state.streakDates.push(today);
+    saveLocal();
+    try {
+      await fetch(SCRIPT_URL, {method:'POST',body:JSON.stringify({action:'addStreakDate',date:today})});
+    } catch(e) {}
+  }
+}
+
+async function toggleStreakDate(key) {
+  const idx = state.streakDates.indexOf(key);
+  if (idx === -1) {
+    state.streakDates.push(key);
+    try { await fetch(SCRIPT_URL, {method:'POST',body:JSON.stringify({action:'addStreakDate',date:key})}); } catch(e) {}
+  } else {
+    state.streakDates.splice(idx, 1);
+    try { await fetch(SCRIPT_URL, {method:'POST',body:JSON.stringify({action:'removeStreakDate',date:key})}); } catch(e) {}
+  }
+  saveLocal();
+  renderCalendar();
+  renderStreak();
 }
 
 // ── SYNC : lecture seule depuis Sheets ──
@@ -280,6 +346,7 @@ async function syncNow() {
     if (data.feuilles) state.feuilles = data.feuilles;
     if (data.database) state.database = data.database;
     if (data.history) state.history = data.history;
+    if (data.streakDates) state.streakDates = data.streakDates;
     SEQUENCE.forEach(f => { if (!state.feuilles[f]) state.feuilles[f] = []; });
     saveLocal();
     document.getElementById('sync-status-text').textContent = 'OK ' + new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
@@ -292,7 +359,7 @@ async function syncNow() {
   showLoader(false);
 }
 
-// ── PUSH : écriture vers Sheets ──
+// ── PUSH ──
 async function pushToSheets() {
   try {
     await fetch(SCRIPT_URL, {method:'POST',body:JSON.stringify({action:'write',feuilles:state.feuilles,database:state.database})});
@@ -324,24 +391,13 @@ function renderDate() {
   document.getElementById('date-bar').textContent = str.charAt(0).toUpperCase() + str.slice(1);
 }
 
-function updateStreak() {
-  const today = new Date().toDateString();
-  const yesterday = new Date(Date.now() - 86400000).toDateString();
-  if (state.lastSessionDate === today) {
-  } else if (state.lastSessionDate === yesterday) {
-    state.streak = (state.streak || 0) + 1;
-  } else {
-    state.streak = 1;
-  }
-  state.lastSessionDate = today;
-}
-
 function renderStreak() {
+  const streak = computeStreak();
   const el = document.getElementById('streak-display');
-  if (state.streak >= 2) {
-    el.textContent = '🔥 ' + state.streak + ' jours consécutifs';
+  if (streak >= 2) {
+    el.textContent = '🔥 ' + streak + ' jours consécutifs';
     el.style.display = 'inline-block';
-  } else if (state.streak === 1) {
+  } else if (streak === 1) {
     el.textContent = '🔥 1er jour — continue !';
     el.style.display = 'inline-block';
   } else {
@@ -377,8 +433,7 @@ function speakCard() {
   const card = session.cards[session.index];
   if (!card) return;
   const text = session.sensNormal ? card.face1 : card.face2;
-  const lang = getLang(card.theme);
-  speak(text, lang);
+  speak(text, getLang(card.theme));
 }
 
 // ── SEARCH ──
@@ -627,7 +682,8 @@ function endSession() {
       state.feuilles[dest].push(card);
     });
   }
-  updateStreak();
+  // Streak : valide le jour (session terminée en entier)
+  addStreakToday();
   const total = session.ok + session.rate;
   const pct = total > 0 ? Math.round((session.ok / total) * 100) : 0;
   const entry = {date:new Date().toLocaleString('fr-FR'), feuille:session.feuille, ok:session.ok, rate:session.rate, pct};
@@ -647,6 +703,51 @@ function endSession() {
 function nextFeuille(c) { const i = SEQUENCE.indexOf(c); return SEQUENCE[Math.min(i+1,SEQUENCE.length-1)]; }
 function prevFeuille(c) { const i = SEQUENCE.indexOf(c); return SEQUENCE[Math.max(i-1,0)]; }
 
+// ── CALENDRIER ──
+function calPrevMonth() { calViewDate.setMonth(calViewDate.getMonth() - 1); renderCalendar(); }
+function calNextMonth() { calViewDate.setMonth(calViewDate.getMonth() + 1); renderCalendar(); }
+
+function renderCalendar() {
+  const el = document.getElementById('calendar');
+  if (!el) return;
+  const year = calViewDate.getFullYear();
+  const month = calViewDate.getMonth();
+  const monthName = calViewDate.toLocaleDateString('fr-FR', {month:'long', year:'numeric'});
+  const streakSet = new Set(state.streakDates || []);
+  const todayKey = dateKey(new Date());
+
+  // Premier jour du mois (lundi = 0)
+  let firstDay = new Date(year, month, 1).getDay(); // 0=dim
+  firstDay = (firstDay === 0) ? 6 : firstDay - 1; // lundi=0
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+  const weekdays = ['L','M','M','J','V','S','D'];
+
+  let html = `
+    <div class="cal-header">
+      <div class="cal-title">${monthName}</div>
+      <div class="cal-nav">
+        <button onclick="calPrevMonth()">‹</button>
+        <button onclick="calNextMonth()">›</button>
+      </div>
+    </div>
+    <div class="cal-weekdays">${weekdays.map(d => `<div class="cal-weekday">${d}</div>`).join('')}</div>
+    <div class="cal-grid">`;
+
+  for (let i = 0; i < firstDay; i++) html += `<div class="cal-day empty"></div>`;
+
+  for (let day = 1; day <= daysInMonth; day++) {
+    const key = year + '-' + String(month+1).padStart(2,'0') + '-' + String(day).padStart(2,'0');
+    const classes = ['cal-day'];
+    if (streakSet.has(key)) classes.push('has-streak');
+    if (key === todayKey) classes.push('today');
+    html += `<div class="${classes.join(' ')}" onclick="toggleStreakDate('${key}')">${day}</div>`;
+  }
+
+  html += `</div>`;
+  el.innerHTML = html;
+}
+
 // ── DASHBOARD ──
 function renderDashboard() {
   const totalCards = SEQUENCE.reduce((s,f) => s + (state.feuilles[f]||[]).length, 0);
@@ -656,7 +757,10 @@ function renderDashboard() {
     <div class="stats-card"><div class="val">${totalCards}</div><div class="lbl">Cartes actives</div></div>
     <div class="stats-card"><div class="val">${totalSessions}</div><div class="lbl">Sessions</div></div>
     <div class="stats-card"><div class="val">${avgPct}%</div><div class="lbl">Score moyen</div></div>
-    <div class="stats-card"><div class="val">${state.streak || 0}🔥</div><div class="lbl">Streak</div></div>`;
+    <div class="stats-card"><div class="val">${computeStreak()}🔥</div><div class="lbl">Streak</div></div>`;
+
+  renderCalendar();
+
   const barsEl = document.getElementById('dash-bars');
   barsEl.innerHTML = '';
   SEQUENCE.forEach(f => {
@@ -668,6 +772,7 @@ function renderDashboard() {
       <div class="bar-track"><div class="bar-fill ${cls}" style="width:${avg}%"><span>${sessions.length > 0 ? avg+'%' : '—'}</span></div></div>
     </div>`;
   });
+
   const histEl = document.getElementById('dash-history');
   if (!state.history.length) { histEl.innerHTML = '<div style="color:var(--text-muted);font-size:14px;text-align:center;padding:20px">Aucune session</div>'; return; }
   histEl.innerHTML = state.history.slice(0,20).map(h => {
