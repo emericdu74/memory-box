@@ -1,4 +1,4 @@
-ƒ<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
@@ -585,7 +585,11 @@ function showCard() {
   document.getElementById('card-question').textContent = session.sensNormal ? card.face1 : card.face2;
   document.getElementById('card-label-a').textContent = session.sensNormal ? 'Traduction' : 'Mot';
   document.getElementById('card-answer').textContent = session.sensNormal ? card.face2 : card.face1;
-  document.getElementById('card-answer').classList.remove('visible');
+  const ans = document.getElementById('card-answer');
+  ans.style.transition = 'none';
+  ans.classList.remove('visible');
+  void ans.offsetWidth;
+  ans.style.transition = '';
   document.getElementById('btn-reveal').classList.remove('hidden');
   document.getElementById('btn-result-row').classList.add('hidden');
   document.getElementById('score-ok-mini').textContent = session.ok;
